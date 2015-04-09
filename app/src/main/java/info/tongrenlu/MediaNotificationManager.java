@@ -26,7 +26,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
@@ -57,25 +57,34 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     public MediaNotificationManager(MusicService service) {
         mService = service;
+
+        Context context = service.getApplicationContext();
+
         mNotificationColor = Color.DKGRAY;
-        mNotificationManager = (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
-        mTogglePlaybackIntent = PendingIntent.getService(mService,
+        mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        Intent togglePlaybackIntent = new Intent(context, MusicService.class);
+        togglePlaybackIntent.setAction(MusicService.ACTION_CMD);
+        togglePlaybackIntent.putExtra(MusicService.CMD_NAME, MusicService.CMD_TOGGLE_PLAYBACK);
+        mTogglePlaybackIntent = PendingIntent.getService(context,
                                                          0,
-                                                         new Intent(MusicService.ACTION_CMD).putExtra(
-                                                                 MusicService.CMD_NAME,
-                                                                 MusicService.CMD_TOGGLE_PLAYBACK),
+                                                         togglePlaybackIntent,
                                                          PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent previousIntent = new Intent(context, MusicService.class);
+        previousIntent.setAction(MusicService.ACTION_CMD);
+        previousIntent.putExtra(MusicService.CMD_NAME, MusicService.CMD_PREV);
         mPreviousIntent = PendingIntent.getService(mService,
                                                    0,
-                                                   new Intent(MusicService.ACTION_CMD).putExtra(
-                                                           MusicService.CMD_NAME,
-                                                           MusicService.CMD_PREV),
+                                                   previousIntent,
                                                    PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent nextIntent = new Intent(context, MusicService.class);
+        nextIntent.setAction(MusicService.ACTION_CMD);
+        nextIntent.putExtra(MusicService.CMD_NAME, MusicService.CMD_NEXT);
         mNextIntent = PendingIntent.getService(mService,
                                                0,
-                                               new Intent(MusicService.ACTION_CMD).putExtra(
-                                                       MusicService.CMD_NAME,
-                                                       MusicService.CMD_NEXT),
+                                               nextIntent,
                                                PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Cancel all notifications to handle the case where the Service was killed and
@@ -129,43 +138,42 @@ public class MediaNotificationManager extends BroadcastReceiver {
     }
 
     private Notification createNotification() {
-        Notification.Builder notificationBuilder = new Notification.Builder(mService);
-        int playPauseButtonPosition = 0;
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(mService);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            playPauseButtonPosition = 1;
+        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
             notificationBuilder.addAction(R.drawable.ic_skip_previous_white_24dp,
                                           mService.getString(R.string.label_previous),
                                           mPreviousIntent);
+        }
 
-            if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                notificationBuilder.addAction(R.drawable.ic_pause_white_24dp,
-                                              mService.getString(R.string.label_pause),
-                                              mTogglePlaybackIntent);
-            } else {
-                notificationBuilder.addAction(R.drawable.ic_play_arrow_white_24dp,
-                                              mService.getString(R.string.label_play),
-                                              mTogglePlaybackIntent);
-            }
+        if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+            notificationBuilder.addAction(R.drawable.ic_pause_white_24dp,
+                                          mService.getString(R.string.label_pause),
+                                          mTogglePlaybackIntent);
+        } else {
+            notificationBuilder.addAction(R.drawable.ic_play_arrow_white_24dp,
+                                          mService.getString(R.string.label_play),
+                                          mTogglePlaybackIntent);
+        }
+
+        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
             notificationBuilder.addAction(R.drawable.ic_skip_next_white_24dp,
                                           mService.getString(R.string.label_next),
                                           mNextIntent);
         }
 
+
         String fetchArtUrl = "http://files.tongrenlu.info/m1002/cover_400.jpg";
         Bitmap art = BitmapFactory.decodeResource(mService.getResources(),
                                                   R.drawable.ic_default_art);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            notificationBuilder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(
-                    playPauseButtonPosition))
-                               .setColor(mNotificationColor)
-                               .setVisibility(Notification.VISIBILITY_PUBLIC);
-        }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            notificationBuilder.setUsesChronometer(true);
-        }
+        notificationBuilder.setColor(mNotificationColor)
+                           .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+
+
+        notificationBuilder.setUsesChronometer(true);
+
 
         notificationBuilder.setSmallIcon(R.drawable.ic_notification)
                            .setContentIntent(createContentIntent())
@@ -176,14 +184,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
         setNotificationPlaybackState(notificationBuilder);
         fetchBitmapFromURLAsync(fetchArtUrl, notificationBuilder);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            return notificationBuilder.build();
-        } else {
-            return notificationBuilder.getNotification();
-        }
+        return notificationBuilder.build();
+
     }
 
-    private void setNotificationPlaybackState(Notification.Builder builder) {
+    private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
         Log.d(TAG, "updateNotificationPlaybackState. mPlaybackState=" + mPlaybackState);
         if (mPlaybackState == null) {
             Log.d(TAG, "updateNotificationPlaybackState. cancelling notification!");
@@ -196,21 +201,16 @@ public class MediaNotificationManager extends BroadcastReceiver {
                        (System.currentTimeMillis() - mPlaybackState.getPosition()) / 1000 +
                        " seconds");
             builder.setWhen(System.currentTimeMillis() - mPlaybackState.getPosition());
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                builder.setShowWhen(true);
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                builder.setUsesChronometer(true);
-            }
+
+            builder.setShowWhen(true);
+            builder.setUsesChronometer(true);
+
         } else {
             Log.d(TAG, "updateNotificationPlaybackState. hiding playback position");
             builder.setWhen(0);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                builder.setShowWhen(false);
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                builder.setUsesChronometer(false);
-            }
+            builder.setShowWhen(false);
+            builder.setUsesChronometer(false);
+
         }
 
         // Make sure that the notification can be dismissed by the user when we are not playing:
@@ -218,21 +218,23 @@ public class MediaNotificationManager extends BroadcastReceiver {
     }
 
     private void fetchBitmapFromURLAsync(final String bitmapUrl,
-                                         final Notification.Builder builder) {
+                                         final NotificationCompat.Builder builder) {
         Picasso.with(mService.getApplicationContext())
                .load(bitmapUrl)
                .placeholder(R.drawable.ic_default_art)
+               .resizeDimen(R.dimen.notification_large_icon_size,
+                            R.dimen.notification_large_icon_size)
+               .centerCrop()
                .into(new Target() {
                    @Override
                    public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
                        Log.d(TAG, "fetchBitmapFromURLAsync: set bitmap to " + bitmapUrl);
+
+
                        builder.setLargeIcon(bitmap);
 
-                       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                           mNotificationManager.notify(NOTIFICATION_ID, builder.build());
-                       } else {
-                           mNotificationManager.notify(NOTIFICATION_ID, builder.getNotification());
-                       }
+                       mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+
                    }
 
                    @Override

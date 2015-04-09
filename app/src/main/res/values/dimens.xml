@@ -31,4 +31,6 @@
     <!-- Margins for full screen activity-->
     <dimen name="text_view_margin">16dp</dimen>
     <dimen name="end_text_margin">16dp</dimen>
+
+    <dimen name="notification_large_icon_size">100dp</dimen>
 </resources>
