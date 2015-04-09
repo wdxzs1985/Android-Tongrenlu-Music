@@ -1,0 +1,20 @@
+<resources>
+
+    <color name="black_overlay">#66000000</color>
+
+    <color name="material_pink_500">#E91E63</color>
+    <color name="material_light_green_500">#8BC34A</color>
+    <color name="material_cyan_500">#00BCD4</color>
+    <color name="material_yellow_500">#FFEB3B</color>
+
+    <color name="bt_accent">#00B8D4</color>
+    <color name="media_item_icon_playing">@color/bt_accent</color>
+    <color name="media_item_icon_not_playing">#ccc</color>
+    <color name="drawer_header_background">@color/bt_accent</color>
+    <color name="error_message_background">#ffff1600</color>
+    <color name="drawer_item_selected_background">#feee</color>
+    <color name="drawer_item_tint_color">#ff333333</color>
+    <color name="fullscreen_secondary_line_color">#E5CCCCCC</color>
+    <color name="fullscreen_line_color">#E5FFFFFF</color>
+
+</resources>
