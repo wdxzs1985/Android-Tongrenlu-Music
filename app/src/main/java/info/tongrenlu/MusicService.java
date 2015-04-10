@@ -18,16 +18,10 @@ import info.tongrenlu.domain.TrackBean;
 
 public class MusicService extends Service implements Playback.Callback {
 
-    // The action of the incoming Intent indicating that it contains a command
-    // to be executed (see {@link #onStartCommand})
-    public static final String ACTION_CMD = "info.tongrenlu.MusicService.CMD";
-    public static final String ACTION_CLBK = "info.tongrenlu.MusicService.CLBK";
-    // The key in the extras of the incoming Intent indicating the command that
-    // should be executed (see {@link #onStartCommand})
-    public static final String CMD_NAME = "CMD_NAME";
     // A value of a CMD_NAME key in the extras of the incoming Intent that
     // indicates that the music playback should be paused (see {@link #onStartCommand})
     public static final String CMD_PLAY = "CMD_PLAY";
+    public static final String CMD_STOP = "CMD_STOP";
     public static final String CMD_TOGGLE_PLAYBACK = "CMD_TOGGLE_PLAYBACK";
     public static final String CMD_PREV = "CMD_PREV";
     public static final String CMD_NEXT = "CMD_NEXT";
@@ -61,6 +55,11 @@ public class MusicService extends Service implements Playback.Callback {
     private DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
     private Playback mPlayback;
 
+    public TrackBean getPlaying() {
+        return mPlayingQueue.isEmpty() ? null : mPlayingQueue.get(mCurrentIndexOnQueue);
+
+    }
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -81,10 +80,8 @@ public class MusicService extends Service implements Playback.Callback {
         mPlayback.setCallback(this);
         mPlayback.start();
 
-
         mMediaNotificationManager = new MediaNotificationManager(this);
         this.mLocalBroadcastManager = LocalBroadcastManager.getInstance(this);
-
 
         updatePlaybackState(null);
     }
@@ -98,37 +95,47 @@ public class MusicService extends Service implements Playback.Callback {
     public int onStartCommand(Intent startIntent, int flags, int startId) {
         if (startIntent != null) {
             String action = startIntent.getAction();
-            String command = startIntent.getStringExtra(CMD_NAME);
-            if (ACTION_CMD.equals(action)) {
-                switch (command) {
-                    case CMD_TOGGLE_PLAYBACK:
-                        if (mPlayback.isPlaying()) {
-                            handlePauseRequest();
-                        } else {
-                            handlePlayRequest();
-                        }
-                        break;
-                    case CMD_PLAY:
-                        this.mTrackList = startIntent.getParcelableArrayListExtra(MusicService.PARAM_TRACK_LIST);
-                        this.mPlayingQueue = new ArrayList<>(mTrackList);
-                        this.mCurrentIndexOnQueue = startIntent.getIntExtra(PARAM_POSITION, 0);
+
+
+            Log.d(TAG, "onStartCommand. action = " + action);
+
+            switch (action) {
+                case CMD_TOGGLE_PLAYBACK:
+                    if (mPlayback.isPlaying()) {
+                        handlePauseRequest();
+                    } else {
                         handlePlayRequest();
-                        break;
-                    case CMD_PLAYBACK_STATE:
-                        sendUpdatePlaybackStateBroadcast(startIntent.getStringExtra(PARAM_RECEIVER));
-                        break;
-                    case CMD_SEEK_TO:
-                        mPlayback.seekTo(startIntent.getIntExtra(PARAM_PROGRESS, 0));
-                        break;
-                    case CMD_RELEASE:
-                        // Reset the delay handler to enqueue a message to stop the service if
-                        // nothing is playing.
-                        mDelayedStopHandler.removeCallbacksAndMessages(null);
-                        mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-                        break;
-                    default:
-                        break;
-                }
+                    }
+                    break;
+                case CMD_PLAY:
+                    this.mTrackList = startIntent.getParcelableArrayListExtra(MusicService.PARAM_TRACK_LIST);
+                    this.mPlayingQueue = new ArrayList<>(mTrackList);
+                    this.mCurrentIndexOnQueue = startIntent.getIntExtra(PARAM_POSITION, 0);
+                    handlePlayRequest();
+                    break;
+                case CMD_PLAYBACK_STATE:
+                    sendUpdatePlaybackStateBroadcast(startIntent.getStringExtra(PARAM_RECEIVER));
+                    break;
+                case CMD_SEEK_TO:
+                    mPlayback.seekTo(startIntent.getIntExtra(PARAM_PROGRESS, 0));
+                    break;
+                case CMD_NEXT:
+                    handleNextRequest();
+                    break;
+                case CMD_PREV:
+                    handlePrevRequest();
+                    break;
+                case CMD_RELEASE:
+                    // Reset the delay handler to enqueue a message to stop the service if
+                    // nothing is playing.
+                    mDelayedStopHandler.removeCallbacksAndMessages(null);
+                    mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
+                    break;
+                case CMD_STOP:
+                    handleStopRequest(null);
+                    break;
+                default:
+                    break;
             }
         }
         return START_STICKY;
@@ -223,12 +230,8 @@ public class MusicService extends Service implements Playback.Callback {
         Log.d(TAG, "updatePlaybackState, playback state=" + mPlayback.getState());
         PlaybackStateCompat state = buildPlaybackState(error);
 
-        if ((state.getState() == PlaybackStateCompat.STATE_STOPPED ||
-             state.getState() == PlaybackStateCompat.STATE_NONE)) {
-            mMediaNotificationManager.stopNotification();
-        } else {
-            mMediaNotificationManager.startNotification(state);
-        }
+        mMediaNotificationManager.onPlaybackStateChanged(state);
+
     }
 
     private long getAvailableActions() {
@@ -257,6 +260,10 @@ public class MusicService extends Service implements Playback.Callback {
     public void onCompletion() {
         // The media player finished playing the current song, so we go ahead
         // and start the next.
+        handleNextRequest();
+    }
+
+    private void handleNextRequest() {
         if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
             // In this sample, we restart the playing queue when it gets to the end:
             mCurrentIndexOnQueue++;
@@ -270,9 +277,22 @@ public class MusicService extends Service implements Playback.Callback {
         }
     }
 
+    private void handlePrevRequest() {
+        if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
+            // In this sample, we restart the playing queue when it gets to the end:
+            mCurrentIndexOnQueue--;
+            if (mCurrentIndexOnQueue < 0) {
+                mCurrentIndexOnQueue = mPlayingQueue.size() - 1;
+            }
+            handlePlayRequest();
+        } else {
+            // If there is nothing to play, we stop and release the resources:
+            handleStopRequest(null);
+        }
+    }
+
     private void sendUpdatePlaybackStateBroadcast(String receiver) {
-        Intent intent = new Intent(MusicService.ACTION_CLBK);
-        intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_PLAYBACK_STATE);
+        Intent intent = new Intent(MusicService.CMD_PLAYBACK_STATE);
         intent.putExtra(PARAM_RECEIVER, receiver);
         intent.putExtra(PARAM_STATE, this.buildPlaybackState(null));
         intent.putParcelableArrayListExtra(PARAM_TRACK_LIST, mPlayingQueue);

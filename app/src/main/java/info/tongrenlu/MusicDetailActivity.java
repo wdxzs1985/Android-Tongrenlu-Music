@@ -43,9 +43,8 @@ public class MusicDetailActivity extends ActionBarActivity implements OnFragment
 
     private void startMusicService(Context context, final Bundle data) {
         Intent intent = new Intent(context, MusicService.class);
-        intent.setAction(MusicService.ACTION_CMD);
+        intent.setAction(MusicService.CMD_PLAY);
         intent.putExtras(data);
-        intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_PLAY);
         startService(intent);
     }
 

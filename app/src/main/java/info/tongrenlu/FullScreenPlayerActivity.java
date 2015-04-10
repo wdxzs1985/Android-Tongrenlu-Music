@@ -86,6 +86,13 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
     private LocalBroadcastManager mLocalBroadcastManager = null;
     private BroadcastReceiver mPlaybackStateReceiver = null;
 
+    public static String toTime(final int time) {
+        final int time2 = time / 1000;
+        final int minute = time2 / 60;
+        final int second = time2 % 60;
+        return String.format("%02d:%02d", minute, second);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,8 +118,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MusicService.class);
-                intent.setAction(MusicService.ACTION_CMD);
-                intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_NEXT);
+                intent.setAction(MusicService.CMD_NEXT);
                 startService(intent);
             }
         });
@@ -121,8 +127,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MusicService.class);
-                intent.setAction(MusicService.ACTION_CMD);
-                intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_PREV);
+                intent.setAction(MusicService.CMD_PREV);
                 startService(intent);
             }
         });
@@ -131,8 +136,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MusicService.class);
-                intent.setAction(MusicService.ACTION_CMD);
-                intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_TOGGLE_PLAYBACK);
+                intent.setAction(MusicService.CMD_TOGGLE_PLAYBACK);
                 startService(intent);
             }
         });
@@ -151,10 +155,8 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
                 Intent intent = new Intent(getApplicationContext(), MusicService.class);
-                intent.setAction(MusicService.ACTION_CMD);
-                intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_SEEK_TO);
+                intent.setAction(MusicService.CMD_SEEK_TO);
                 intent.putExtra(MusicService.PARAM_PROGRESS, seekBar.getProgress());
                 startService(intent);
 
@@ -172,25 +174,22 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mPlaybackStateReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(final Context context, final Intent intent) {
-                if (MusicService.ACTION_CLBK.equals(intent.getAction())) {
-                    switch (intent.getStringExtra(MusicService.CMD_NAME)) {
-                        case MusicService.CMD_PLAYBACK_STATE:
-                            String receiver = intent.getStringExtra(MusicService.PARAM_RECEIVER);
-                            if (receiver == null || TAG.equals(receiver)) {
-                                updateFromService(intent);
-                                PlaybackStateCompat state = intent.getParcelableExtra(MusicService.PARAM_STATE);
-                                updatePlaybackState(state);
-                                updateProgress();
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                switch (intent.getAction()) {
+                    case MusicService.CMD_PLAYBACK_STATE:
+                        String receiver = intent.getStringExtra(MusicService.PARAM_RECEIVER);
+                        if (receiver == null || TAG.equals(receiver)) {
+                            updateFromService(intent);
+                            PlaybackStateCompat state = intent.getParcelableExtra(MusicService.PARAM_STATE);
+                            updatePlaybackState(state);
+                            updateProgress();
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
         };
     }
-
 
     private void updateFromParams(Intent intent) {
         String title = intent.getStringExtra(MusicService.PARAM_TITLE);
@@ -234,11 +233,10 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         scheduleProgressUpdate();
 
         mLocalBroadcastManager.registerReceiver(mPlaybackStateReceiver,
-                                                new IntentFilter(MusicService.ACTION_CLBK));
+                                                new IntentFilter(MusicService.CMD_PLAYBACK_STATE));
 
         Intent intent = new Intent(this, MusicService.class);
-        intent.setAction(MusicService.ACTION_CMD);
-        intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_PLAYBACK_STATE);
+        intent.setAction(MusicService.CMD_PLAYBACK_STATE);
         intent.putExtra(MusicService.PARAM_RECEIVER, TAG);
         this.startService(intent);
     }
@@ -250,8 +248,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mLocalBroadcastManager.unregisterReceiver(mPlaybackStateReceiver);
 
         Intent intent = new Intent(this, MusicService.class);
-        intent.setAction(MusicService.ACTION_CMD);
-        intent.putExtra(MusicService.CMD_NAME, MusicService.CMD_RELEASE);
+        intent.setAction(MusicService.CMD_RELEASE);
         this.startService(intent);
     }
 
@@ -278,17 +275,9 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mCurrentArtUri = Uri.parse("http://files.tongrenlu.info/m" +
                                    trackBean.getArticleId() +
                                    "/cover_400.jpg");
-        Picasso.with(getApplicationContext()).load(mCurrentArtUri).into(mBackgroundImage, new Callback() {
-            @Override
-            public void onSuccess() {
-
-            }
-
-            @Override
-            public void onError() {
-                Picasso.with(getApplicationContext()).load(R.drawable.ic_default_art).into(mBackgroundImage);
-            }
-        });
+        Picasso.with(getApplicationContext())
+               .load(mCurrentArtUri)
+               .into(mBackgroundImage);
 
 
         int duration = intent.getIntExtra(MusicService.PARAM_DURATION, 0);
@@ -361,12 +350,5 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             currentPosition += (int) timeDelta * mLastPlaybackState.getPlaybackSpeed();
         }
         mSeekbar.setProgress((int) currentPosition);
-    }
-
-    public static String toTime(final int time) {
-        final int time2 = time / 1000;
-        final int minute = time2 / 60;
-        final int second = time2 % 60;
-        return String.format("%02d:%02d", minute, second);
     }
 }

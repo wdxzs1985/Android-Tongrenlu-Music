@@ -53,8 +53,7 @@ public class LocalPlayback implements Playback,
                 Log.d(TAG, "Headphones disconnected.");
                 if (isPlaying()) {
                     Intent i = new Intent(context, MusicService.class);
-                    i.setAction(MusicService.ACTION_CMD);
-                    i.putExtra(MusicService.CMD_NAME, MusicService.CMD_TOGGLE_PLAYBACK);
+                    i.setAction(MusicService.CMD_TOGGLE_PLAYBACK);
                     mService.startService(i);
                 }
             }
@@ -134,18 +133,22 @@ public class LocalPlayback implements Playback,
 
     @Override
     public int getCurrentStreamPosition() {
-        if (mMediaPlayer != null) {
+        if (mMediaPlayer != null && mState != PlaybackStateCompat.STATE_BUFFERING) {
             int position = mMediaPlayer.getCurrentPosition();
-            mCurrentStreamPosition = Math.max(0, position);
+            Log.d(TAG, "state = " + mState + ", mCurrentStreamPosition = " + mCurrentStreamPosition);
+            Log.d(TAG, "state = " + mState + ", position = " + position);
+            mCurrentStreamPosition = position;
         }
         return mCurrentStreamPosition;
     }
 
     @Override
     public int getDuration() {
-        if (mMediaPlayer != null) {
+        if (mMediaPlayer != null && mState != PlaybackStateCompat.STATE_BUFFERING) {
             int duration = mMediaPlayer.getDuration();
-            mDuration = Math.max(0, duration);
+            Log.d(TAG, "state = " + mState + ", mDuration = " + mDuration);
+            Log.d(TAG, "state = " + mState + ", duration = " + duration);
+            mDuration = duration;
         }
         return mDuration;
     }
@@ -172,7 +175,8 @@ public class LocalPlayback implements Playback,
 
             try {
                 createMediaPlayerIfNeeded();
-
+            mDuration = 0;
+                mCurrentStreamPosition = 0;
                 mState = PlaybackStateCompat.STATE_BUFFERING;
 
                 mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
