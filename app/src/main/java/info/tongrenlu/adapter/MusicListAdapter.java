@@ -86,7 +86,10 @@ public class MusicListAdapter extends BaseAdapter {
         Uri imageUri = Uri.parse("http://files.tongrenlu.info/m" +
                                  getItemId(position) +
                                  "/cover_400.jpg");
-        Picasso.with(context).load(imageUri).into(coverView);
+        Picasso.with(context).load(imageUri)
+               .resizeDimen(android.R.dimen.thumbnail_width,
+                            android.R.dimen.thumbnail_height)
+               .into(coverView);
         return itemView;
     }
 

@@ -183,8 +183,8 @@ public class MediaNotificationManager {
         RequestCreator picasso = Picasso.with(mService.getApplicationContext())
                                         .load(artUrl)
                                         .placeholder(R.drawable.ic_default_art)
-                                        .resizeDimen(R.dimen.notification_large_icon_size,
-                                                     R.dimen.notification_large_icon_size)
+                                        .resizeDimen(android.R.dimen.notification_large_icon_width,
+                                                     android.R.dimen.notification_large_icon_height)
                                         .centerCrop();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
