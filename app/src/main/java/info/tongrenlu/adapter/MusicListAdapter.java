@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,16 +79,10 @@ public class MusicListAdapter extends BaseAdapter {
 
     public View bindView(final Context context, final View itemView, final int position) {
         final ImageView coverView = (ImageView) itemView.findViewById(R.id.music_cover_view);
-
-        float density = context.getResources().getDisplayMetrics().density;
-        int size = (int) (144f * density + 0.5f);
-
         Uri imageUri = Uri.parse("http://files.tongrenlu.info/m" +
                                  getItemId(position) +
                                  "/cover_400.jpg");
-        Picasso.with(context).load(imageUri)
-               .resizeDimen(android.R.dimen.thumbnail_width,
-                            android.R.dimen.thumbnail_height)
+        Glide.with(context).load(imageUri).thumbnail(0.5f)
                .into(coverView);
         return itemView;
     }

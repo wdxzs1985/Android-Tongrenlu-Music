@@ -3,15 +3,20 @@ package info.tongrenlu;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ListView;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import info.tongrenlu.adapter.MusicTrackAdapter;
 import info.tongrenlu.domain.TrackBean;
 import info.tongrenlu.util.BaseLoader;
 import info.tongrenlu.util.OnFragmentInteractionListener;
@@ -23,12 +28,12 @@ import info.tongrenlu.util.OnFragmentInteractionListener;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class TrackListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<ArrayList<TrackBean>> {
+public class TrackListFragment extends Fragment implements LoaderManager.LoaderCallbacks<ArrayList<TrackBean>> {
 
     private static final int TRACK_LIST_LOADER_ID = 0;
     private OnFragmentInteractionListener mListener;
 
-    private MusicTrackAdapter mAdapter = null;
+    private SimpleRecyclerViewAdapter mAdapter = null;
 
 
     /**
@@ -38,17 +43,26 @@ public class TrackListFragment extends ListFragment implements LoaderManager.Loa
     public TrackListFragment() {
     }
 
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(final LayoutInflater inflater,
+                             final ViewGroup container,
+                             final Bundle savedInstanceState) {
+        RecyclerView recyclerView = (RecyclerView) inflater.inflate(
+                R.layout.fragment_cheese_list, container, false);
+        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
 
-        // TODO: Change Adapter to display your content
-        mAdapter = new MusicTrackAdapter();
-        setListAdapter(mAdapter);
-
-        this.getLoaderManager().initLoader(TRACK_LIST_LOADER_ID, this.getArguments(), this);
+        mAdapter = new SimpleRecyclerViewAdapter(this,
+                                                 new ArrayList<TrackBean>());
+        recyclerView.setAdapter(mAdapter);
+        return recyclerView;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        this.getLoaderManager().initLoader(TRACK_LIST_LOADER_ID, this.getArguments(), this);
+    }
 
     @Override
     public Loader<ArrayList<TrackBean>> onCreateLoader(final int id, final Bundle args) {
@@ -61,39 +75,12 @@ public class TrackListFragment extends ListFragment implements LoaderManager.Loa
 
                     Long articleId = args.getLong("articleId");
 
-
-                    data.add(new TrackBean(Long.valueOf(52744),
-                                           "Intro",
-                                           "802e5f850dbb388d99165e2eec784d4f",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52745),
-                                           "Dolls",
-                                           "bf397640f5b025eabecc8895ecd8996b",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52746),
-                                           "Dreaming",
-                                           "ce9f2e30215155d77a1bf4a58693d651",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52747),
-                                           "Shinto Shrine",
-                                           "015233c129a8e8e915835ed1f7599943",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52748),
-                                           "Eighteen Four",
-                                           "da91667641ea5c8bb26831ccf829f413",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52749),
-                                           "Scolded By The Princess",
-                                           "17057fef57a6ad757c11fd7c85b71ad4",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52750),
-                                           "Infinite Being",
-                                           "06a92d985fd8b81e71915e17c63ae757",
-                                           articleId));
-                    data.add(new TrackBean(Long.valueOf(52751),
-                                           "The Last Judgement",
-                                           "5f27b57aca2b89fa780717f5083122a8",
-                                           articleId));
+                    for (int i=0;i<20;i++) {
+                        data.add(new TrackBean(Long.valueOf(52744),
+                                               "Track",
+                                               "802e5f850dbb388d99165e2eec784d4f",
+                                               articleId));
+                    }
                     return data;
                 }
             };
@@ -104,7 +91,7 @@ public class TrackListFragment extends ListFragment implements LoaderManager.Loa
     @Override
     public void onLoadFinished(final Loader<ArrayList<TrackBean>> loader,
                                final ArrayList<TrackBean> data) {
-        mAdapter.setTrackList(data);
+        mAdapter.setValues(data);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -130,24 +117,82 @@ public class TrackListFragment extends ListFragment implements LoaderManager.Loa
         mListener = null;
     }
 
+    public static class SimpleRecyclerViewAdapter
+            extends RecyclerView.Adapter<SimpleRecyclerViewAdapter.ViewHolder> {
 
-    @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-        if (null != mListener) {
-            Bundle data = new Bundle();
-            data.putParcelableArrayList(MusicService.PARAM_TRACK_LIST, mAdapter.getTrackList());
-            data.putInt(MusicService.PARAM_POSITION, position);
+        private final TypedValue mTypedValue = new TypedValue();
+        private int mBackground;
+        private ArrayList<TrackBean> mValues;
+        private final TrackListFragment mFragment;
 
-            TrackBean selectTrackBean = mAdapter.getItem(position);
-            data.putString(MusicService.PARAM_TITLE, selectTrackBean.getName());
-            data.putParcelable(MusicService.PARAM_COVER, Uri.parse("http://files.tongrenlu.info/m" +
-                                                                   selectTrackBean.getArticleId() +
-                                                                   "/cover_400.jpg"));
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            public TrackBean mBoundItem;
 
-            mListener.onFragmentInteraction(this, data);
+            public final View mView;
+            public final TextView mTextView;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+                mTextView = (TextView) view.findViewById(android.R.id.text1);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mTextView.getText();
+            }
+        }
+
+        public TrackBean getValueAt(int position) {
+            return mValues.get(position);
+        }
+
+        public void setValues(ArrayList<TrackBean> items) {
+            mValues = items;
+        }
+
+        public SimpleRecyclerViewAdapter(TrackListFragment fragment, ArrayList<TrackBean> items) {
+            mFragment = fragment;
+            fragment.getActivity().getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
+            mValues = items;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                                      .inflate( android.R.layout.simple_list_item_1, parent, false);
+            view.setBackgroundResource(mBackground);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, final int position) {
+            final TrackBean selectTrackBean = getValueAt(position);
+            holder.mBoundItem = selectTrackBean;
+            holder.mTextView.setText(selectTrackBean.getName());
+
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Bundle data = new Bundle();
+                    data.putParcelableArrayList(MusicService.PARAM_TRACK_LIST,mValues);
+                    data.putInt(MusicService.PARAM_POSITION, position);
+
+                    data.putString(MusicService.PARAM_TITLE, selectTrackBean.getName());
+                    data.putParcelable(MusicService.PARAM_COVER, Uri.parse("http://files.tongrenlu.info/m" +
+                                                                           selectTrackBean.getArticleId() +
+                                                                           "/cover_400.jpg"));
+
+                    mFragment.mListener.onFragmentInteraction(mFragment, data);
+                }
+            });
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return mValues.size();
         }
     }
-
-
 }

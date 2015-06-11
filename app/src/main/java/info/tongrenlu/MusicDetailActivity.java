@@ -1,33 +1,34 @@
 package info.tongrenlu;
 
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.graphics.Palette;
-import android.util.Pair;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.util.Pair;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
+import com.bumptech.glide.Glide;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import info.tongrenlu.util.OnFragmentInteractionListener;
 
 
-public class MusicDetailActivity extends ActionBarActivity implements OnFragmentInteractionListener {
+public class MusicDetailActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
     private ImageView mCoverView = null;
-    private View mContainer = null;
-    private TextView mTitleView = null;
 
     @Override
     public void onFragmentInteraction(final Fragment target,
@@ -52,15 +53,12 @@ public class MusicDetailActivity extends ActionBarActivity implements OnFragment
         Intent intent = new Intent(context, FullScreenPlayerActivity.class);
         intent.putExtras(data);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
                                                                                    mCoverView,
                                                                                    "share_cover");
-            // start the new activity
-            startActivity(intent, options.toBundle());
-        } else {
-            startActivity(intent);
-        }
+
+        // start the new activity
+        ActivityCompat.startActivity(this,intent, options.toBundle());
 
     }
 
@@ -69,81 +67,101 @@ public class MusicDetailActivity extends ActionBarActivity implements OnFragment
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_detail);
 
-        final long articleId = this.getIntent().getLongExtra("id", 0);
+        Intent intent = getIntent();
+        final long articleId = intent.getLongExtra("id", 0);
+        final String title = intent.getStringExtra("title");
 
-        mCoverView = (ImageView) this.findViewById(R.id.music_cover_view);
+        CollapsingToolbarLayout collapsingToolbar =
+                (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbar.setTitle(title);
+
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         String imageUrl = "http://files.tongrenlu.info/m" + articleId + "/cover_400.jpg";
+        mCoverView = (ImageView) findViewById(R.id.backdrop);
+        Glide.with(this).load(imageUrl).centerCrop().into(mCoverView);
 
-        mContainer = this.findViewById(R.id.header_container);
-        mTitleView = (TextView) this.findViewById(R.id.music_title_view);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        if (viewPager != null) {
+            setupViewPager(viewPager);
+        }
 
 
-        Picasso.with(this).load(imageUrl).into(new Target() {
-            @Override
-            public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
 
-                mCoverView.setImageBitmap(bitmap);
+    }
 
-                Palette.generateAsync(bitmap, new Palette.PaletteAsyncListener() {
-                    public void onGenerated(Palette palette) {
-                        if (palette != null) {
-                            Palette.Swatch defaultSwatch = palette.getLightMutedSwatch();
-                            if (defaultSwatch == null) {
-                                defaultSwatch = palette.getDarkVibrantSwatch();
-                            }
-                            mContainer.setBackgroundColor(defaultSwatch.getRgb());
-                            mTitleView.setTextColor(defaultSwatch.getTitleTextColor());
+    private void setupViewPager(ViewPager viewPager) {
+        Adapter adapter = new Adapter(getSupportFragmentManager());
 
-                        }
-                    }
-                });
-            }
+        adapter.addFragment(getTrackListFragment(), "TrackList");
+        adapter.addFragment(new CheeseListFragment(), "Category 2");
+        adapter.addFragment(new CheeseListFragment(), "Category 3");
+        viewPager.setAdapter(adapter);
+    }
 
-            @Override
-            public void onBitmapFailed(final Drawable errorDrawable) {
-
-                mCoverView.setImageDrawable(errorDrawable);
-
-            }
-
-            @Override
-            public void onPrepareLoad(final Drawable placeHolderDrawable) {
-
-                mCoverView.setImageDrawable(placeHolderDrawable);
-            }
-        });
-
-        TrackListFragment trackListFragment = new TrackListFragment();
+    private TrackListFragment getTrackListFragment() {
+        TrackListFragment fragment = new TrackListFragment();
         Bundle args = new Bundle();
-        args.putLong("articleId", articleId);
-        trackListFragment.setArguments(args);
-        getSupportFragmentManager().beginTransaction()
-                                   .replace(R.id.fragment_container, trackListFragment)
-                                   .commit();
+        args.putLong("articleId", getIntent().getLongExtra("id", 0));
+        fragment.setArguments(args);
 
+        return fragment;
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        //getMenuInflater().inflate(R.menu.sample_actions, menu);
         getMenuInflater().inflate(R.menu.menu_music_detail, menu);
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            case R.id.action_settings:
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    static class Adapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragments = new ArrayList<>();
+        private final List<String> mFragmentTitles = new ArrayList<>();
+
+        public Adapter(FragmentManager fm) {
+            super(fm);
         }
 
-        return super.onOptionsItemSelected(item);
+        public void addFragment(Fragment fragment, String title) {
+            mFragments.add(fragment);
+            mFragmentTitles.add(title);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitles.get(position);
+        }
     }
 
 }

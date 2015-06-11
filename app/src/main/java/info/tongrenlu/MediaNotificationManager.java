@@ -32,10 +32,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
-import com.squareup.picasso.Target;
-
 import info.tongrenlu.domain.TrackBean;
 
 /**
@@ -180,12 +176,12 @@ public class MediaNotificationManager {
         final String artUrl = "http://files.tongrenlu.info/m" +
                               playingTrack.getArticleId() +
                               "/cover_400.jpg";
-        RequestCreator picasso = Picasso.with(mService.getApplicationContext())
-                                        .load(artUrl)
-                                        .placeholder(R.drawable.ic_default_art)
-                                        .resizeDimen(android.R.dimen.notification_large_icon_width,
-                                                     android.R.dimen.notification_large_icon_height)
-                                        .centerCrop();
+//        RequestCreator picasso = Picasso.with(mService.getApplicationContext())
+//                                        .load(artUrl)
+//                                        .placeholder(R.drawable.ic_default_art)
+//                                        .resizeDimen(android.R.dimen.notification_large_icon_width,
+//                                                     android.R.dimen.notification_large_icon_height)
+//                                        .centerCrop();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final Notification.Builder builder = new Notification.Builder(mService);
@@ -245,26 +241,26 @@ public class MediaNotificationManager {
                     builder.setUsesChronometer(false);
                 }
             }
-
-            picasso.into(new Target() {
-                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                @Override
-                public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
-                    Log.d(TAG, "fetchBitmapFromURLAsync: set bitmap to " + artUrl);
-                    builder.setLargeIcon(bitmap);
-                    mNotificationManager.notify(NOTIFICATION_ID, builder.build());
-                }
-
-                @Override
-                public void onBitmapFailed(final Drawable errorDrawable) {
-
-                }
-
-                @Override
-                public void onPrepareLoad(final Drawable placeHolderDrawable) {
-
-                }
-            });
+//
+//            picasso.into(new Target() {
+//                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+//                @Override
+//                public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
+//                    Log.d(TAG, "fetchBitmapFromURLAsync: set bitmap to " + artUrl);
+//                    builder.setLargeIcon(bitmap);
+//                    mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+//                }
+//
+//                @Override
+//                public void onBitmapFailed(final Drawable errorDrawable) {
+//
+//                }
+//
+//                @Override
+//                public void onPrepareLoad(final Drawable placeHolderDrawable) {
+//
+//                }
+//            });
             return builder.build();
         } else {
             final NotificationCompat.Builder builder = new NotificationCompat.Builder(mService);
@@ -315,25 +311,25 @@ public class MediaNotificationManager {
                 }
 
             }
-
-            picasso.into(new Target() {
-                @Override
-                public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
-                    Log.d(TAG, "fetchBitmapFromURLAsync: set bitmap to " + artUrl);
-                    builder.setLargeIcon(bitmap);
-                    mNotificationManager.notify(NOTIFICATION_ID, builder.build());
-                }
-
-                @Override
-                public void onBitmapFailed(final Drawable errorDrawable) {
-
-                }
-
-                @Override
-                public void onPrepareLoad(final Drawable placeHolderDrawable) {
-
-                }
-            });
+//
+//            picasso.into(new Target() {
+//                @Override
+//                public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
+//                    Log.d(TAG, "fetchBitmapFromURLAsync: set bitmap to " + artUrl);
+//                    builder.setLargeIcon(bitmap);
+//                    mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+//                }
+//
+//                @Override
+//                public void onBitmapFailed(final Drawable errorDrawable) {
+//
+//                }
+//
+//                @Override
+//                public void onPrepareLoad(final Drawable placeHolderDrawable) {
+//
+//                }
+//            });
             return builder.build();
         }
     }

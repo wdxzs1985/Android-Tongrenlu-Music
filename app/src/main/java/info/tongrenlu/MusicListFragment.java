@@ -1,23 +1,34 @@
 package info.tongrenlu;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Pair;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import info.tongrenlu.adapter.MusicListAdapter;
 import info.tongrenlu.domain.MusicBean;
 import info.tongrenlu.util.BaseLoader;
 import info.tongrenlu.util.OnFragmentInteractionListener;
@@ -32,22 +43,20 @@ import info.tongrenlu.util.OnFragmentInteractionListener;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class MusicListFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
-                                                           AbsListView.OnItemClickListener,
+public class MusicListFragment extends Fragment implements
                                                            LoaderManager.LoaderCallbacks<List<MusicBean>> {
     public static final int MUSIC_LIST_LOADER_ID = 0;
-    private static final int SPAN_COUNT = 3;
+
     /**
      * The fragment's ListView/GridView.
      */
-    private AbsListView mListView;
-    private MusicListAdapter mAdapter;
+    private SimpleStringRecyclerViewAdapter mAdapter;
 
     /**
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private SwipeRefreshLayout mSwipeRefreshLayout;
+
 
     private OnFragmentInteractionListener mListener = null;
 
@@ -58,27 +67,16 @@ public class MusicListFragment extends Fragment implements SwipeRefreshLayout.On
     public MusicListFragment() {
     }
 
-
-    @Override
-    public void onRefresh() {
-        this.getLoaderManager().restartLoader(MUSIC_LIST_LOADER_ID, Bundle.EMPTY, this);
-    }
-
-
     @Override
     public Loader<List<MusicBean>> onCreateLoader(final int id, final Bundle args) {
-        mSwipeRefreshLayout.setRefreshing(true);
         return new BaseLoader<List<MusicBean>>(this.getActivity().getApplicationContext()) {
             @Override
             public List<MusicBean> loadInBackground() {
-
                 List<MusicBean> data = new ArrayList<>();
-                data.add(new MusicBean(Long.valueOf(1001), "Dolls"));
-                data.add(new MusicBean(Long.valueOf(1002), "Dolls"));
-                data.add(new MusicBean(Long.valueOf(1003), "Dolls"));
-                data.add(new MusicBean(Long.valueOf(1004), "Dolls"));
-                data.add(new MusicBean(Long.valueOf(1005), "Dolls"));
-
+                for (int i= 0;i<30; i++){
+                    data.add(new MusicBean(Long.valueOf(2582),
+                                           "house-set-of-touhou-project-rare-tracks"));
+                }
                 return data;
             }
         };
@@ -86,29 +84,14 @@ public class MusicListFragment extends Fragment implements SwipeRefreshLayout.On
 
     @Override
     public void onLoadFinished(final Loader<List<MusicBean>> loader, final List<MusicBean> data) {
-        mAdapter.setData(data);
+        mAdapter.setValues(data);
         mAdapter.notifyDataSetChanged();
-        mSwipeRefreshLayout.setRefreshing(false);
+        //mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void onLoaderReset(final Loader<List<MusicBean>> loader) {
-        mSwipeRefreshLayout.setRefreshing(true);
-    }
-
-    @Override
-    public void onItemClick(final AdapterView<?> parent,
-                            final View view,
-                            final int position,
-                            final long id) {
-        MusicBean musicBean = mAdapter.getItem(position);
-
-        Bundle data = new Bundle();
-        data.putLong("id", musicBean.getId());
-        data.putString("title", musicBean.getTitle());
-
-        View shareCoverView = view.findViewById(R.id.music_cover_view);
-        this.mListener.onFragmentInteraction(this, data, new Pair<>(shareCoverView, "share_cover"));
+       // mSwipeRefreshLayout.setRefreshing(true);
     }
 
     @Override
@@ -120,24 +103,13 @@ public class MusicListFragment extends Fragment implements SwipeRefreshLayout.On
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_music, container, false);
+        RecyclerView recyclerView = (RecyclerView)inflater.inflate(R.layout.fragment_recycler_view, container, false);
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_layout);
-        // 色設定
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.material_pink_500,
-                                                    R.color.material_light_green_500,
-                                                    R.color.material_cyan_500,
-                                                    R.color.material_yellow_500);
-        mSwipeRefreshLayout.setOnRefreshListener(this);
-
-        // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        mListView.setOnItemClickListener(this);
-
-        mAdapter = new MusicListAdapter();
-        mListView.setAdapter(mAdapter);
-
-        return view;
+        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        mAdapter = new SimpleStringRecyclerViewAdapter(this,
+                                                       new ArrayList<MusicBean>());
+        recyclerView.setAdapter(mAdapter);
+        return recyclerView;
     }
 
     @Override
@@ -179,4 +151,99 @@ public class MusicListFragment extends Fragment implements SwipeRefreshLayout.On
         //        }
     }
 
+
+
+    public static class SimpleStringRecyclerViewAdapter
+            extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
+
+        private final TypedValue mTypedValue = new TypedValue();
+        private int mBackground;
+        private List<MusicBean> mValues;
+        public final MusicListFragment mFragment;
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            public MusicBean mBoundItem;
+
+            public final View mView;
+            public final ImageView mImageView;
+            public final TextView mTextView;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+
+                mImageView = (ImageView) view.findViewById(R.id.avatar);
+                mTextView = (TextView) view.findViewById(android.R.id.text1);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mTextView.getText();
+            }
+        }
+
+        public MusicBean getValueAt(int position) {
+            return mValues.get(position);
+        }
+
+        public void setValues(List<MusicBean> items) {
+            mValues = items;
+        }
+
+        public SimpleStringRecyclerViewAdapter(MusicListFragment fragment
+                , List<MusicBean> items) {
+            mFragment= fragment;
+            Context context = mFragment.getActivity();
+            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
+            mValues = items;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                                      .inflate(R.layout.list_item, parent, false);
+            view.setBackgroundResource(mBackground);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, int position) {
+            MusicBean item =  mValues.get(position);
+            holder.mBoundItem = item;
+            holder.mTextView.setText(item.getTitle());
+
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Context context = v.getContext();
+                    MusicBean musicBean = holder.mBoundItem;
+
+                    Bundle data = new Bundle();
+                    data.putLong("id", musicBean.getId());
+                    data.putString("title", musicBean.getTitle());
+
+                    mFragment.mListener.onFragmentInteraction(mFragment,
+                                                              data,
+                                                              new Pair(
+                                                                      holder.mImageView,
+                                                                      "share_cover"));
+                }
+            });
+
+            Uri imageUri = Uri.parse("http://files.tongrenlu.info/m" +
+                                     item.getId() +
+                                     "/cover_400.jpg");
+
+            Glide.with(holder.mImageView.getContext())
+                 .load(imageUri)
+                 .fitCenter()
+                 .into(holder.mImageView);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mValues.size();
+        }
+    }
 }

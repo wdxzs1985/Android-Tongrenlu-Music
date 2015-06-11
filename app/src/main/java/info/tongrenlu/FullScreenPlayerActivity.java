@@ -27,17 +27,19 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -51,7 +53,7 @@ import info.tongrenlu.domain.TrackBean;
  * A full screen player that shows the current playing music with a background image
  * depicting the album art. The activity also has controls to seek/pause/play the audio.
  */
-public class FullScreenPlayerActivity extends ActionBarActivity {
+public class FullScreenPlayerActivity extends AppCompatActivity {
 
     private static final String TAG = FullScreenPlayerActivity.class.getName();
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
@@ -75,8 +77,8 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
     private TextView mLine3;
     private ProgressBar mLoading;
     private View mControllers;
-    private Drawable mPauseDrawable;
-    private Drawable mPlayDrawable;
+//    private Drawable mPauseDrawable;
+//    private Drawable mPlayDrawable;
     private ImageView mBackgroundImage;
     private Uri mCurrentArtUri;
     private Handler mHandler = new Handler();
@@ -98,10 +100,20 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_player);
 
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        final ActionBar ab = getSupportActionBar();
+        //ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+        ab.setDisplayHomeAsUpEnabled(true);
+
+
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
 
-        mPauseDrawable = this.getResources().getDrawable(R.drawable.ic_pause_white_48dp);
-        mPlayDrawable = this.getResources().getDrawable(R.drawable.ic_play_arrow_white_48dp);
+        //mPauseDrawable = this.getResources().getDrawable(R.drawable.ic_pause_white_48dp);
+        //mPlayDrawable = this.getResources().getDrawable(R.drawable.ic_play_arrow_white_48dp);
+
         mPlayPause = (ImageView) findViewById(R.id.imageView1);
         mSkipNext = (ImageView) findViewById(R.id.next);
         mSkipPrev = (ImageView) findViewById(R.id.prev);
@@ -201,7 +213,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         Uri artUri = intent.getParcelableExtra(MusicService.PARAM_COVER);
         if (artUri != null) {
             mCurrentArtUri = artUri;
-            Picasso.with(this.getApplicationContext()).load(mCurrentArtUri).into(mBackgroundImage);
+            Glide.with(this.getApplicationContext()).load(mCurrentArtUri).into(mBackgroundImage);
         }
     }
 
@@ -275,7 +287,7 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mCurrentArtUri = Uri.parse("http://files.tongrenlu.info/m" +
                                    trackBean.getArticleId() +
                                    "/cover_400.jpg");
-        Picasso.with(getApplicationContext())
+        Glide.with(getApplicationContext())
                .load(mCurrentArtUri)
                .into(mBackgroundImage);
 
@@ -298,7 +310,8 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             case PlaybackStateCompat.STATE_PLAYING:
                 mLoading.setVisibility(View.INVISIBLE);
                 mPlayPause.setVisibility(View.VISIBLE);
-                mPlayPause.setImageDrawable(mPauseDrawable);
+//                mPlayPause.setImageDrawable(mPauseDrawable);
+                Glide.with(this).load(R.drawable.ic_pause_white_48dp).into(mPlayPause);
                 mControllers.setVisibility(View.VISIBLE);
                 scheduleProgressUpdate();
                 break;
@@ -306,14 +319,15 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
                 mControllers.setVisibility(View.VISIBLE);
                 mLoading.setVisibility(View.INVISIBLE);
                 mPlayPause.setVisibility(View.VISIBLE);
-                mPlayPause.setImageDrawable(mPlayDrawable);
+//                mPlayPause.setImageDrawable(mPlayDrawable);
+                Glide.with(this).load(R.drawable.ic_play_arrow_white_48dp).into(mPlayPause);
                 stopProgressUpdate();
                 break;
             case PlaybackStateCompat.STATE_NONE:
             case PlaybackStateCompat.STATE_STOPPED:
                 mLoading.setVisibility(View.INVISIBLE);
                 mPlayPause.setVisibility(View.VISIBLE);
-                mPlayPause.setImageDrawable(mPlayDrawable);
+                Glide.with(this).load(R.drawable.ic_play_arrow_white_48dp).into(mPlayPause);
                 stopProgressUpdate();
                 break;
             case PlaybackStateCompat.STATE_BUFFERING:
@@ -351,4 +365,15 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         }
         mSeekbar.setProgress((int) currentPosition);
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }
