@@ -5,6 +5,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -33,6 +35,11 @@
                 <action android:name="info.tongrenlu.MusicService.CMD" />
             </intent-filter>
         </service>
+
+        <provider android:name=".provider.TongrenluContentProvider"
+                  android:authorities="info.tongrenlu"
+                  android:exported="false">
+        </provider>
 
     </application>
 

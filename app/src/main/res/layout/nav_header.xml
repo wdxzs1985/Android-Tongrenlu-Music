@@ -24,7 +24,16 @@
     android:orientation="vertical"
     android:gravity="bottom">
 
-    <TextView
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/avatar"
+        android:layout_width="@dimen/list_item_avatar_size"
+        android:layout_height="@dimen/list_item_avatar_size"
+        android:scaleType="centerCrop"
+        android:src="@drawable/cheese_1"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Username"

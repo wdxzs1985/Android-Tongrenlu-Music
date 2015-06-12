@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
@@ -36,6 +37,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +52,13 @@ import info.tongrenlu.util.OnFragmentInteractionListener;
  */
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
+    public static final int ALBUM_LOADER = 0;
+    public static final int PLAYLIST_LOADER = 1;
+    public static final int TRACK_LOADER = 2;
+
+
     private DrawerLayout mDrawerLayout;
+    private ViewPager mViewPager;
 
     @Override
     public void onFragmentInteraction(final Fragment target, Bundle data, Pair<View,String>[] sharedElements) {
@@ -85,19 +96,15 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             setupDrawerContent(navigationView);
         }
 
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        if (viewPager != null) {
-            setupViewPager(viewPager);
+        mViewPager = (ViewPager) findViewById(R.id.viewpager);
+        if (mViewPager != null) {
+            setupViewPager(mViewPager);
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
+
 
     }
 
@@ -119,19 +126,37 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());
-        adapter.addFragment(new MusicListFragment(), "Category 1");
+        adapter.addFragment(new PlaylistFragment(),getString(R.string.label_playlist));
+        adapter.addFragment(new TrackFragment(), getString(R.string.label_track));
+       // adapter.addFragment(new MusicListFragment(), "Category 1");
        // adapter.addFragment(new CheeseListFragment(), "Category 2");
-        //adapter.addFragment(new CheeseListFragment(), "Category 3");
         viewPager.setAdapter(adapter);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
+
+        ImageView userAvatar = (ImageView) navigationView.findViewById(R.id.avatar);
+        Glide.with(this).load(R.drawable.cheese_2).into(userAvatar);
+
+        TextView username = (TextView) navigationView.findViewById(R.id.username);
+        username.setText("Guest");
+
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(MenuItem menuItem) {
                         menuItem.setChecked(true);
                         mDrawerLayout.closeDrawers();
+
+                        switch (menuItem.getItemId()) {
+                            case R.id.nav_home:
+                                mViewPager.setCurrentItem(0,true);
+                                break;
+                            case R.id.nav_messages:
+                                //mViewPager.setCurrentItem(1,true);
+                                break;
+                        }
+
                         return true;
                     }
                 });

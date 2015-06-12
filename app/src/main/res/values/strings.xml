@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name">Tongrenlu Music</string>
-
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_main">MainActivity</string>
@@ -54,7 +52,7 @@
     <string name="now_playing">Now Playing</string>
     <string name="background_image_str">Background image for album art</string>
     <string name="no_search_results">No search results.</string>
-    <string name="loading">Loading…</string>
+
     <string name="media_route_menu_title">Play on…</string>
 
 
@@ -64,5 +62,114 @@
     cheese caerphilly cheddar cheesecake cream cheese manchego lancashire. Roquefort squirty cheese
     the big cheese.</string>
     <string name="checkin">Checkin</string>
-    <string name="menu_settings">Settings</string>
+
+    <string name="app_name">东方同人录</string>
+    <string name="menu_settings">设置</string>
+
+    <string name="label_more">More</string>
+    <string name="label_album">专辑</string>
+    <string name="label_playlist">歌单</string>
+    <string name="label_track">所有歌曲</string>
+    <string name="label_search_hint">查找专辑</string>
+
+    <string name="loading">少女祈祷中</string>
+    <string name="loading_album">正在更新专辑列表</string>
+    <string name="loading_track">正在更新专辑曲目</string>
+    <string name="no_data">神马都没有找到QAQ</string>
+    <string name="no_description">UP主很懒，神马都没有写</string>
+    <string name="clear_complete">清除成功</string>
+    <string name="press_back_hit_1">1 HIT!</string>
+    <string name="press_back_hit_2">2 HIT! 退出!</string>
+
+    <string name="title_new_playlist">新建歌单</string>
+    <string name="title_select_playlist">选择要加入的歌单</string>
+    <string name="message_add_track_to_playlist">已将 %s 加入歌单</string>
+
+    <string name="article">专辑</string>
+    <string name="article_cover">专辑封面</string>
+    <string name="article_title">专辑名</string>
+    <string name="track_title">曲目名</string>
+    <string name="track_artist">表演者</string>
+
+    <string name="player_time_string">00:00</string>
+    <string name="player_previous">上一首</string>
+    <string name="player_next">下一首</string>
+    <string name="player_play">播放</string>
+    <string name="player_stop">停止</string>
+    <string name="player_list">正在播放</string>
+
+    <string name="err_network">网络连接失败</string>
+
+    <string name="download_loaded">0 KB</string>
+    <string name="download_size">0 KB</string>
+    <string name="used_size">已使用： %s</string>
+    <string name="downloading">正在努力下载: %s</string>
+    <string name="download_waiting">还有%d首正在等待</string>
+    <string name="download_finish">下载完成</string>
+
+    <string name="action_cancel">取消</string>
+    <string name="action_create">创建</string>
+    <string name="action_close">关闭</string>
+    <string name="action_delete">删除</string>
+    <string name="action_download">下载</string>
+    <string name="action_download_all">全部下载</string>
+    <string name="action_add_to_playlist">加入歌单</string>
+    <string name="action_add_track">添加歌曲</string>
+    <string name="action_delete_playlist">删除歌单</string>
+    <string name="action_edit_playlist">编辑歌单</string>
+    <string name="action_new_playlist">加到新歌单</string>
+    <string name="action_play">播放</string>
+    <string name="action_play_all">全部播放</string>
+    <string name="action_refresh_album">更新专辑列表</string>
+    <string name="action_search">搜搜</string>
+    <string name="action_update_now">马上更新</string>
+    <string name="action_update_later">以后再说</string>
+    <string name="action_update_never">永不更新</string>
+
+    <string name="prefs_title_player">播放器设置</string>
+    <string name="prefs_summary_player">播放器设置</string>
+    <string name="pref_title_shuffle_play">随机播放</string>
+    <string name="pref_default_shuffle_play">随机播放</string>
+    <string-array name="pref_entries_shuffle_play">
+        <item >顺序播放</item>
+        <item >随机播放</item>
+    </string-array>
+    <string-array name="pref_entry_values_shuffle_play">
+        <item >0</item>
+        <item >1</item>
+    </string-array>
+
+    <string name="pref_title_loop_play">循环播放</string>
+    <string name="pref_default_loop_play">随机播放</string>
+    <string-array name="pref_entries_loop_play">
+        <item >不循环</item>
+        <item >全部循环</item>
+        <item >单曲循环</item>
+    </string-array>
+    <string-array name="pref_entry_values_loop_play">
+        <item >0</item>
+        <item >1</item>
+        <item >2</item>
+    </string-array>
+
+    <string name="prefs_title_gui">界面设置</string>
+    <string name="pref_background_render">渲染背景</string>
+
+    <string name="prefs_title_network">网络设置</string>
+    <string name="prefs_summary_network">网络设置</string>
+    <string name="pref_title_server">服务器地址</string>
+    <string name="pref_title_wifi_only">只允许使用无线WIFI下载</string>
+
+    <string name="prefs_title_other">辅助功能</string>
+    <string name="pref_title_save_to_sdcard">转存MP3到sd卡</string>
+    <string name="pref_title_clear_cache">清空图片缓存</string>
+    <string name="pref_summary_clear_cache">专辑封面图片将被清空</string>
+    <string name="pref_title_clear_data">清空已下载歌曲</string>
+    <string name="pref_summary_clear_data">已下载歌曲将被清空</string>
+
+    <string name="prefs_title_version">版本信息</string>
+    <string name="pref_title_version_name">当前版本</string>
+    <string name="pref_title_next_update_date">下回检查更新日</string>
+    <string name="pref_title_check_update">检查更新</string>
+    <string name="pref_title_web">访问东方同人录网站</string>
 </resources>
