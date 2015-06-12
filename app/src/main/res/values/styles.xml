@@ -4,10 +4,10 @@
     </style>
 
     <style name="Base.Theme.DesignDemo" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#673AB7</item>
-        <item name="colorPrimaryDark">#512DA8</item>
-        <item name="colorAccent">#FF4081</item>
-        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">@color/material_cyan_500</item>
+        <item name="colorPrimaryDark">@color/material_cyan_700</item>
+        <item name="colorAccent">@color/material_pink_A200</item>
+        <!--<item name="android:windowBackground">@color/window_background</item>-->
     </style>
 
     <style name="Widget.CardContent" parent="android:Widget">

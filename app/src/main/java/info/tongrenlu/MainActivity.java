@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private DrawerLayout mDrawerLayout;
 
     @Override
-    public void onFragmentInteraction(final Fragment target, Bundle data, Pair[] sharedElements) {
+    public void onFragmentInteraction(final Fragment target, Bundle data, Pair<View,String>[] sharedElements) {
         if (target instanceof MusicListFragment) {
             // get the element that receives the click event
 
@@ -61,9 +61,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                                                                                        sharedElements);
                 // start the new activity
             ActivityCompat.startActivity(this,intent, options.toBundle());
-
-        } else {
-
         }
     }
 
@@ -76,8 +73,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         setSupportActionBar(toolbar);
 
         final ActionBar ab = getSupportActionBar();
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-        ab.setDisplayHomeAsUpEnabled(true);
+        if(ab!=null) {
+            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -99,9 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         .setAction("Action", null).show();
             }
         });
-//
-//        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-//        tabLayout.setupWithViewPager(viewPager);
+
     }
 
     @Override

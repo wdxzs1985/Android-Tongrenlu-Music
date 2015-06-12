@@ -19,7 +19,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.drawable.Drawable;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
@@ -73,7 +72,7 @@ public class FullScreenPlayerActivity extends AppCompatActivity {
     private TextView mEnd;
     private SeekBar mSeekbar;
     private TextView mLine1;
-    private TextView mLine2;
+//    private TextView mLine2;
     private TextView mLine3;
     private ProgressBar mLoading;
     private View mControllers;
@@ -105,8 +104,9 @@ public class FullScreenPlayerActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         final ActionBar ab = getSupportActionBar();
-        //ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-        ab.setDisplayHomeAsUpEnabled(true);
+        if(ab!=null){
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
 
 
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
@@ -121,7 +121,7 @@ public class FullScreenPlayerActivity extends AppCompatActivity {
         mEnd = (TextView) findViewById(R.id.endText);
         mSeekbar = (SeekBar) findViewById(R.id.seekBar1);
         mLine1 = (TextView) findViewById(R.id.line1);
-        mLine2 = (TextView) findViewById(R.id.line2);
+//        mLine2 = (TextView) findViewById(R.id.line2);
         mLine3 = (TextView) findViewById(R.id.line3);
         mLoading = (ProgressBar) findViewById(R.id.progressBar1);
         mControllers = findViewById(R.id.controllers);
@@ -206,12 +206,13 @@ public class FullScreenPlayerActivity extends AppCompatActivity {
     private void updateFromParams(Intent intent) {
         String title = intent.getStringExtra(MusicService.PARAM_TITLE);
         if (!TextUtils.isEmpty(title)) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(title);
+            //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            //getSupportActionBar().setTitle(title);
+            mLine1.setText(title);
         }
 
         Uri artUri = intent.getParcelableExtra(MusicService.PARAM_COVER);
-        if (artUri != null) {
+        if (artUri != null && !artUri.equals(mCurrentArtUri)) {
             mCurrentArtUri = artUri;
             Glide.with(this.getApplicationContext()).load(mCurrentArtUri).into(mBackgroundImage);
         }
@@ -279,9 +280,12 @@ public class FullScreenPlayerActivity extends AppCompatActivity {
         TrackBean trackBean = trackList.get(position);
 
 
+        final ActionBar ab = getSupportActionBar();
+        if(ab!=null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
+
         String title = trackBean.getName();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(title);
         mLine1.setText(title);
 
         mCurrentArtUri = Uri.parse("http://files.tongrenlu.info/m" +
