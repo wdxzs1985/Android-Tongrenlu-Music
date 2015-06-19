@@ -31,17 +31,6 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener {
     private ContentObserver mContentObserver = null;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-//        final FragmentActivity activity = this.getActivity();
-
-//        String title = activity.getString(R.string.label_playlist);
-//        this.setTitle(title);
-
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
 

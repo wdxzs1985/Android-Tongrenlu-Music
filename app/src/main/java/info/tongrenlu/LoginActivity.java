@@ -2,15 +2,16 @@ package info.tongrenlu;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,7 +24,6 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.squareup.okhttp.FormEncodingBuilder;
-import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
@@ -35,34 +35,31 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.CookieManager;
-import java.net.CookiePolicy;
+import java.net.HttpCookie;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import info.tongrenlu.component.AutoCompleteTextView;
+import info.tongrenlu.component.AutoCompleteEmailView;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements TextWatcher{
+public class LoginActivity extends AppCompatActivity {
 
     public static final String TAG = LoginActivity.class.getName();
-
-    public static final String AT_MARK = "@";
-    private static final String[] DOMAINS = new String[] {
-            "gmail.com", "163.com", "qq.com", "msn.com"
-    };
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    private AutoLoginTask mAutoLoginTask = null;
+    private UserLoginTask mUserLoginTask = null;
 
     // UI references.
     private TextInputLayout mEmailInputLayout;
     private TextInputLayout mPasswordInputLayout;
 
-    private AutoCompleteTextView mEmailView;
+    private AutoCompleteEmailView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
@@ -76,7 +73,7 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
         mEmailInputLayout = (TextInputLayout) findViewById(R.id.email_layout);
         mEmailInputLayout.setErrorEnabled(true);
 
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mEmailView = (AutoCompleteEmailView) findViewById(R.id.email);
         populateAutoComplete();
 
         mPasswordInputLayout = (TextInputLayout) findViewById(R.id.password_layout);
@@ -109,60 +106,50 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
     private void populateAutoComplete() {
         final ArrayAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line);
         mEmailView.setAdapter(adapter);
-        mEmailView.addTextChangedListener(this);
+        mEmailView.addTextChangedListener(mEmailView);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        @Override
-        public void beforeTextChanged(final CharSequence s,
-        final int start,
-        final int count,
-        final int after) {
-
+        if (mAutoLoginTask != null) {
+            return;
         }
 
-        @Override
-        public void onTextChanged(final CharSequence s,
-        final int start,
-        final int before,
-        final int count) {
-
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if (sharedPreferences.contains("email")) {
+            String email = sharedPreferences.getString("email", "");
+            mEmailView.setText(email);
         }
 
-        @Override
-        public void afterTextChanged(final Editable s) {
-            mEmailView.post(new Runnable() {
-                @Override
-                public void run() {
-                    final String email = s.toString();
-                    final ArrayAdapter<String> adapter = (ArrayAdapter) mEmailView.getAdapter();
+        if (sharedPreferences.contains("fingerprint")) {
+            String fingerprint = sharedPreferences.getString("fingerprint", "");
+            if (StringUtils.isNotBlank(fingerprint)) {
 
-                    adapter.setNotifyOnChange(false);
-                    adapter.clear();
+                showProgress(true);
 
-                    if (StringUtils.isNotBlank(email)) {
-                        String[] tokens = StringUtils.split(email,AT_MARK,2);
-                        String username = tokens[0];
-                        String domain = "";
-                        if (tokens.length == 2) {
-                            domain = tokens[1];
-                        }
+                mAutoLoginTask = new AutoLoginTask(this.getApplicationContext(), fingerprint);
+                mAutoLoginTask.execute();
 
-                        if(StringUtils.isNotBlank(username)) {
-                            for (String fullDomain : DOMAINS) {
-                                if (StringUtils.isBlank(domain) || StringUtils.startsWith(fullDomain,domain)){
-                                    adapter.add(username + AT_MARK + fullDomain);
-                                }
-                            }
-                        }
-                    }
-                    adapter.notifyDataSetChanged();
-                    adapter.getFilter().filter(s, mEmailView);
-                }
-            });
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mAutoLoginTask != null) {
+            mAutoLoginTask.cancel(true);
+            mAutoLoginTask = null;
         }
 
-
+        if (mUserLoginTask != null) {
+            mUserLoginTask.cancel(true);
+            mUserLoginTask = null;
+        }
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -170,7 +157,7 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
      * errors are presented and no actual login attempt is made.
      */
     public void attemptLogin() {
-        if (mAuthTask != null) {
+        if (mUserLoginTask != null) {
             return;
         }
 
@@ -213,8 +200,8 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            mUserLoginTask = new UserLoginTask(this.getApplicationContext(), email, password);
+            mUserLoginTask.execute();
         }
     }
 
@@ -268,9 +255,6 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
     }
 
 
-
-
-
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -280,34 +264,40 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
         private final String mEmail;
         private final String mPassword;
         private final OkHttpClient mClient;
+        private final Context mContext;
+
         private String mEmailError;
         private String mPasswordError;
         private String mError;
-        public final MediaType JSON
-                = MediaType.parse("application/json; charset=utf-8");
 
-        UserLoginTask(String email, String password) {
+        UserLoginTask(Context context, String email, String password) {
             mEmail = email;
             mPassword = password;
-            mClient= new OkHttpClient();
-            CookieManager cookieManager = new CookieManager();
-            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-            mClient.setCookieHandler(cookieManager);
+            mContext = context;
+            mClient = MainApplication.getHttpClient(context);
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            String salt = this.getSalt();
-
-            if(StringUtils.isNotBlank(salt)) {
+            Map saltResult = this.getSalt();
+            if ((Boolean) saltResult.get("result")) {
+                String salt = (String) saltResult.get("salt");
                 String encPassword = md5Hex(md5Hex(mPassword) + salt);
 
                 Map signInResult = doLogin(mEmail, encPassword);
                 if(signInResult!= null) {
-                    Boolean result = (Boolean) signInResult.get("result");
-                    if (result) {
+                    if ((Boolean) signInResult.get("result")) {
+                        Map loginUser = (Map) signInResult.get("loginUser");
 
+                        Long id = ((Double) loginUser.get("id")).longValue();
+                        String nickname = (String) loginUser.get("nickname");
 
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
+                                mContext);
+                        sharedPreferences.edit()
+                                         .putLong("user.id", id)
+                                         .putString("user.name", nickname)
+                                         .apply();
 
                         return true;
                     } else {
@@ -315,6 +305,8 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
                         mPasswordError = (String) signInResult.get("passwordError");
                         mError = (String) signInResult.get("error");
                     }
+                } else {
+                    mError = (String) saltResult.get("error");
                 }
             }
             return false;
@@ -324,7 +316,8 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
             return new String(Hex.encodeHex(DigestUtils.md5(text)));
         }
 
-        private String getSalt() {
+        private Map getSalt() {
+            Map modelMap = null;
             // リクエストオブジェクトを作って
             Request request = new Request.Builder()
                     .url("http://www.tongrenlu.info/signin/salt")
@@ -336,17 +329,22 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
                 Response response = mClient.newCall(request).execute();
 
                 if(response.isSuccessful()) {
-                    Map map = new Gson().fromJson(response.body().string(),HashMap.class);
-                    String salt = (String) map.get("salt");
-                    return salt;
+                    modelMap = new Gson().fromJson(response.body().string(), HashMap.class);
+                    // String salt = (String) map.get("salt");
+                    modelMap.put("result", true);
+                    return modelMap;
                 }
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage(), e);
+                modelMap = new HashMap();
+                modelMap.put("result", false);
+                modelMap.put("error", e.getMessage());
             }
-            return null;
+            return modelMap;
         }
 
         private Map doLogin(String email, String password) {
+            Map modelMap = null;
             RequestBody body = new FormEncodingBuilder()
                     .add("email", email)
                     .add("password", password)
@@ -364,28 +362,43 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
 
                 if(response.isSuccessful()) {
                     String responseString = response.body().string();
-                    Log.d(TAG, responseString);
-
-                    Map map = new Gson().fromJson(responseString,HashMap.class);
-                    return map;
+                    modelMap = new Gson().fromJson(responseString, HashMap.class);
+                    return modelMap;
                 }
             } catch (IOException e) {
-                Log.e(TAG, e.getMessage(), e);
+                modelMap = new HashMap();
+                modelMap.put("result", false);
+                modelMap.put("error", e.getMessage());
             }
-            return null;
+            return modelMap;
         }
 
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
+            mUserLoginTask = null;
             showProgress(false);
 
             if (success) {
-                finish();
+
+                CookieManager cookieManager = (CookieManager) mClient.getCookieHandler();
+                List<HttpCookie> cookies = (List) cookieManager.getCookieStore().getCookies();
+
+                for (HttpCookie cookie : cookies) {
+                    String name = cookie.getName();
+                    if ("fingerprint".equals(name)) {
+
+                        String fingerprint = cookie.getValue();
+
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
+                                mContext);
+                        sharedPreferences.edit().putString("fingerprint", fingerprint).apply();
+                        finish();
+                        return;
+                    }
+                }
+
             } else {
-
-
                 if(StringUtils.isNotBlank(mEmailError)) {
                     mEmailInputLayout.setError(mEmailError);
                 }
@@ -404,7 +417,81 @@ public class LoginActivity extends AppCompatActivity implements TextWatcher{
 
         @Override
         protected void onCancelled() {
-            mAuthTask = null;
+            mUserLoginTask = null;
+            showProgress(false);
+        }
+    }
+
+
+    /**
+     * Represents an asynchronous login/registration task used to authenticate
+     * the user.
+     */
+    public class AutoLoginTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String mFingerprint;
+        private final OkHttpClient mClient;
+        private final Context mContext;
+
+        AutoLoginTask(Context context, String fingerprint) {
+            mFingerprint = fingerprint;
+            mContext = context;
+            mClient = MainApplication.getHttpClient(context);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            CookieManager cookieManager = (CookieManager) mClient.getCookieHandler();
+            cookieManager.getCookieStore().add(null, new HttpCookie("fingerprint", mFingerprint));
+
+            Request request = new Request.Builder().url("http://www.tongrenlu.info/console")
+                                                   .get()
+                                                   .build();
+
+            // リクエストして結果を受け取って
+            try {
+                Response response = mClient.newCall(request).execute();
+
+                if (response.isSuccessful()) {
+                    return true;
+                }
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage(), e);
+
+            }
+
+            return false;
+        }
+
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            mAutoLoginTask = null;
+            if (success) {
+                CookieManager cookieManager = (CookieManager) mClient.getCookieHandler();
+                List<HttpCookie> cookies = (List) cookieManager.getCookieStore().getCookies();
+
+                for (HttpCookie cookie : cookies) {
+                    String name = cookie.getName();
+                    if ("fingerprint".equals(name)) {
+
+                        String fingerprint = cookie.getValue();
+
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
+                                mContext);
+                        sharedPreferences.edit().putString("fingerprint", fingerprint).apply();
+                        finish();
+                        return;
+                    }
+                }
+
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mAutoLoginTask = null;
             showProgress(false);
         }
     }

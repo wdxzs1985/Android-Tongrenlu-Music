@@ -16,21 +16,15 @@
 package info.tongrenlu;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * A class that shows the Media Queue to the user.
@@ -45,6 +39,12 @@ public class PlaybackControlsFragment extends Fragment {
     private TextView mExtraInfo;
     private ImageView mAlbumArt;
     private String mArtUrl;
+    private View.OnClickListener mButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -82,8 +82,6 @@ public class PlaybackControlsFragment extends Fragment {
 
     }
 
-
-
     public void setExtraInfo(String extraInfo) {
         if (extraInfo == null) {
             mExtraInfo.setVisibility(View.GONE);
@@ -96,13 +94,6 @@ public class PlaybackControlsFragment extends Fragment {
     private void onPlaybackStateChanged(PlaybackState state) {
 
     }
-
-    private View.OnClickListener mButtonListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-        }
-    };
 
     private void playMedia() {
 

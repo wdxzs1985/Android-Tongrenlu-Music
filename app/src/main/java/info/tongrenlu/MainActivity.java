@@ -18,9 +18,7 @@ package info.tongrenlu;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
@@ -59,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     private DrawerLayout mDrawerLayout;
     private ViewPager mViewPager;
+    private TabLayout mTabLayout;
 
     @Override
     public void onFragmentInteraction(final Fragment target, Bundle data, Pair<View,String>[] sharedElements) {
@@ -68,9 +67,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             Intent intent = new Intent(this.getApplicationContext(), MusicDetailActivity.class);
             intent.putExtras(data);
 
-                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
-                                                                                       sharedElements);
-                // start the new activity
+            ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(this,
+                                                                                               sharedElements);
+            // start the new activity
             ActivityCompat.startActivity(this,intent, options.toBundle());
         }
     }
@@ -96,15 +95,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             setupDrawerContent(navigationView);
         }
 
+        mTabLayout = (TabLayout) findViewById(R.id.tabs);
+        // mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
+
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
+
         if (mViewPager != null) {
             setupViewPager(mViewPager);
         }
 
+    }
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
 
+    @Override
+    protected void onStart() {
+        super.onStart();
 
     }
 
@@ -126,11 +131,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());
+        adapter.addFragment(new MusicListFragment(), getString(R.string.label_album));
         adapter.addFragment(new PlaylistFragment(),getString(R.string.label_playlist));
         adapter.addFragment(new TrackFragment(), getString(R.string.label_track));
-       // adapter.addFragment(new MusicListFragment(), "Category 1");
-       // adapter.addFragment(new CheeseListFragment(), "Category 2");
         viewPager.setAdapter(adapter);
+
+        mTabLayout.setupWithViewPager(viewPager);
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
@@ -150,10 +156,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
                         switch (menuItem.getItemId()) {
                             case R.id.nav_home:
-                                mViewPager.setCurrentItem(0,true);
+                                //mViewPager.setCurrentItem(0,true);
+                                //setupViewPager(mViewPager);
                                 break;
                             case R.id.nav_messages:
                                 //mViewPager.setCurrentItem(1,true);
+                                //setupViewPager2(mViewPager);
                                 break;
                         }
 

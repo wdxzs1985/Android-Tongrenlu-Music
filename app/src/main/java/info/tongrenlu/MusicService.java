@@ -15,6 +15,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import info.tongrenlu.domain.TrackBean;
+import info.tongrenlu.music.LocalPlayback;
+import info.tongrenlu.music.Playback;
 
 public class MusicService extends Service implements Playback.Callback {
 

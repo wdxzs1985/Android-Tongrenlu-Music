@@ -69,34 +69,14 @@ public class CheeseListFragment extends Fragment {
         private int mBackground;
         private List<String> mValues;
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            public String mBoundString;
-
-            public final View mView;
-            public final ImageView mImageView;
-            public final TextView mTextView;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mImageView = (ImageView) view.findViewById(R.id.avatar);
-                mTextView = (TextView) view.findViewById(android.R.id.text1);
-            }
-
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mTextView.getText();
-            }
-        }
-
-        public String getValueAt(int position) {
-            return mValues.get(position);
-        }
-
         public SimpleStringRecyclerViewAdapter(Context context, List<String> items) {
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
             mValues = items;
+        }
+
+        public String getValueAt(int position) {
+            return mValues.get(position);
         }
 
         @Override
@@ -132,6 +112,25 @@ public class CheeseListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return mValues.size();
+        }
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            public final View mView;
+            public final ImageView mImageView;
+            public final TextView mTextView;
+            public String mBoundString;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+                mImageView = (ImageView) view.findViewById(R.id.avatar);
+                mTextView = (TextView) view.findViewById(android.R.id.text1);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mTextView.getText();
+            }
         }
     }
 }

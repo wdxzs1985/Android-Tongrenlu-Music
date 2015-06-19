@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package info.tongrenlu;
+package info.tongrenlu.music;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,6 +28,8 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import java.io.IOException;
+
+import info.tongrenlu.MusicService;
 
 import static android.media.MediaPlayer.OnCompletionListener;
 import static android.media.MediaPlayer.OnErrorListener;
@@ -45,7 +47,29 @@ public class LocalPlayback implements Playback,
                                       OnSeekCompleteListener {
 
     public static final String TAG = "LocalPlayback";
-
+    // The volume we set the media player to when we lose audio focus, but are
+    // allowed to reduce the volume instead of stopping playback.
+    public static final float VOLUME_DUCK = 0.2f;
+    // The volume we set the media player when we have audio focus.
+    public static final float VOLUME_NORMAL = 1.0f;
+    // we don't have audio focus, and can't duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_NO_DUCK = 0;
+    // we don't have focus, but can duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_CAN_DUCK = 1;
+    // we have full audio focus
+    private static final int AUDIO_FOCUSED = 2;
+    private final MusicService mService;
+    private final WifiManager.WifiLock mWifiLock;
+    // Type of audio focus we have:
+    private int mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
+    private int mState;
+    private boolean mPlayOnFocusGain;
+    private Callback mCallback;
+    private volatile boolean mAudioNoisyReceiverRegistered;
+    private volatile int mCurrentPosition;
+    private volatile Uri mCurrentMediaUri;
+    private AudioManager mAudioManager;
+    private MediaPlayer mMediaPlayer;
     private BroadcastReceiver mAudioNoisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -59,29 +83,6 @@ public class LocalPlayback implements Playback,
             }
         }
     };
-    // The volume we set the media player to when we lose audio focus, but are
-    // allowed to reduce the volume instead of stopping playback.
-    public static final float VOLUME_DUCK = 0.2f;
-    // The volume we set the media player when we have audio focus.
-    public static final float VOLUME_NORMAL = 1.0f;
-    // we don't have audio focus, and can't duck (play at a low volume)
-    private static final int AUDIO_NO_FOCUS_NO_DUCK = 0;
-    // Type of audio focus we have:
-    private int mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
-    // we don't have focus, but can duck (play at a low volume)
-    private static final int AUDIO_NO_FOCUS_CAN_DUCK = 1;
-    // we have full audio focus
-    private static final int AUDIO_FOCUSED = 2;
-    private final MusicService mService;
-    private final WifiManager.WifiLock mWifiLock;
-    private int mState;
-    private boolean mPlayOnFocusGain;
-    private Callback mCallback;
-    private volatile boolean mAudioNoisyReceiverRegistered;
-    private volatile int mCurrentPosition;
-    private volatile Uri mCurrentMediaUri;
-    private AudioManager mAudioManager;
-    private MediaPlayer mMediaPlayer;
     private IntentFilter mAudioNoisyIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     private int mCurrentStreamPosition;
     private int mDuration;

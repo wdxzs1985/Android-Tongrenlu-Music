@@ -19,19 +19,19 @@
     android:layout_width="match_parent"
     android:layout_height="192dp"
     android:background="?attr/colorPrimaryDark"
-    android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+              android:gravity="bottom"
     android:orientation="vertical"
-    android:gravity="bottom">
+              android:padding="16dp"
+              android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/avatar"
         android:layout_width="@dimen/list_item_avatar_size"
         android:layout_height="@dimen/list_item_avatar_size"
-        android:scaleType="centerCrop"
-        android:src="@drawable/cheese_1"
+        android:layout_marginBottom="32dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="32dp"/>
+        android:scaleType="centerCrop"
+        android:src="@drawable/cheese_1" />
 
     <TextView android:id="@+id/username"
         android:layout_width="match_parent"

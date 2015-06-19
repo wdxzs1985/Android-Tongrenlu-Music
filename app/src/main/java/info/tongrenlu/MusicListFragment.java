@@ -2,24 +2,20 @@ package info.tongrenlu;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.util.Pair;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,7 +23,6 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import info.tongrenlu.domain.MusicBean;
 import info.tongrenlu.util.BaseLoader;
@@ -45,7 +40,7 @@ import info.tongrenlu.util.OnFragmentInteractionListener;
  */
 public class MusicListFragment extends Fragment implements
                                                            LoaderManager.LoaderCallbacks<List<MusicBean>> {
-    public static final int MUSIC_LIST_LOADER_ID = 0;
+
 
     /**
      * The fragment's ListView/GridView.
@@ -94,10 +89,6 @@ public class MusicListFragment extends Fragment implements
        // mSwipeRefreshLayout.setRefreshing(true);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -115,7 +106,12 @@ public class MusicListFragment extends Fragment implements
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        this.getLoaderManager().initLoader(MUSIC_LIST_LOADER_ID, Bundle.EMPTY, this);
+
+        final FragmentActivity activity = this.getActivity();
+
+
+        activity.getSupportLoaderManager()
+                .initLoader(MainActivity.ALBUM_LOADER, Bundle.EMPTY, this);
     }
 
     @Override
@@ -156,30 +152,17 @@ public class MusicListFragment extends Fragment implements
     public static class SimpleStringRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
 
+        public final MusicListFragment mFragment;
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
         private List<MusicBean> mValues;
-        public final MusicListFragment mFragment;
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            public MusicBean mBoundItem;
-
-            public final View mView;
-            public final ImageView mImageView;
-            public final TextView mTextView;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-
-                mImageView = (ImageView) view.findViewById(R.id.avatar);
-                mTextView = (TextView) view.findViewById(android.R.id.text1);
-            }
-
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mTextView.getText();
-            }
+        public SimpleStringRecyclerViewAdapter(MusicListFragment fragment, List<MusicBean> items) {
+            mFragment = fragment;
+            Context context = mFragment.getActivity();
+            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
+            mValues = items;
         }
 
         public MusicBean getValueAt(int position) {
@@ -187,15 +170,6 @@ public class MusicListFragment extends Fragment implements
         }
 
         public void setValues(List<MusicBean> items) {
-            mValues = items;
-        }
-
-        public SimpleStringRecyclerViewAdapter(MusicListFragment fragment
-                , List<MusicBean> items) {
-            mFragment= fragment;
-            Context context = mFragment.getActivity();
-            context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
-            mBackground = mTypedValue.resourceId;
             mValues = items;
         }
 
@@ -224,8 +198,7 @@ public class MusicListFragment extends Fragment implements
                     data.putString("title", musicBean.getTitle());
 
                     mFragment.mListener.onFragmentInteraction(mFragment,
-                                                              data,
-                                                              new Pair(
+                                                              data, new Pair<View, String>(
                                                                       holder.mImageView,
                                                                       "share_cover"));
                 }
@@ -244,6 +217,26 @@ public class MusicListFragment extends Fragment implements
         @Override
         public int getItemCount() {
             return mValues.size();
+        }
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            public final View mView;
+            public final ImageView mImageView;
+            public final TextView mTextView;
+            public MusicBean mBoundItem;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+
+                mImageView = (ImageView) view.findViewById(R.id.avatar);
+                mTextView = (TextView) view.findViewById(android.R.id.text1);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mTextView.getText();
+            }
         }
     }
 }
