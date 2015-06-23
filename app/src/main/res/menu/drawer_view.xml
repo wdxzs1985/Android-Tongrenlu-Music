@@ -18,13 +18,18 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/nav_signup"
             android:icon="@drawable/ic_dashboard"
-            android:title="@string/label_playlist" />
+            android:title="@string/label_signup"
+            android:visible="false" />
         <item
-            android:id="@+id/nav_messages"
+            android:id="@+id/nav_signin"
+            android:icon="@drawable/ic_dashboard"
+            android:title="@string/label_signin" />
+        <item
+            android:id="@+id/nav_signout"
             android:icon="@drawable/ic_event"
-            android:title="@string/label_album" />
+            android:title="@string/label_signout" />
     </group>
 
 </menu>

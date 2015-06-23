@@ -66,11 +66,16 @@
     <string name="app_name">东方同人录</string>
     <string name="menu_settings">设置</string>
 
+    <string name="label_signup">注册</string>
+    <string name="label_signin">登入</string>
+    <string name="label_signout">登出</string>
     <string name="label_more">More</string>
     <string name="label_album">专辑</string>
     <string name="label_playlist">歌单</string>
     <string name="label_track">所有歌曲</string>
     <string name="label_search_hint">查找专辑</string>
+
+    <string name="guest"></string>
 
     <string name="loading">少女祈祷中</string>
     <string name="loading_album">正在更新专辑列表</string>

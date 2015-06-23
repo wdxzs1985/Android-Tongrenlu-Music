@@ -3,6 +3,7 @@ package info.tongrenlu;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -254,6 +255,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    public void startMainActivity() {
+        startActivity(new Intent(this.getApplicationContext(), MainActivity.class));
+        finish();
+    }
+
+
 
     /**
      * Represents an asynchronous login/registration task used to authenticate
@@ -295,8 +302,8 @@ public class LoginActivity extends AppCompatActivity {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
                                 mContext);
                         sharedPreferences.edit()
-                                         .putLong("user.id", id)
-                                         .putString("user.name", nickname)
+                                         .putLong("userId", id)
+                                         .putString("nickname", nickname)
                                          .apply();
 
                         return true;
@@ -393,7 +400,8 @@ public class LoginActivity extends AppCompatActivity {
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
                                 mContext);
                         sharedPreferences.edit().putString("fingerprint", fingerprint).apply();
-                        finish();
+
+                        startMainActivity();
                         return;
                     }
                 }
@@ -468,6 +476,8 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final Boolean success) {
             mAutoLoginTask = null;
+            showProgress(false);
+
             if (success) {
                 CookieManager cookieManager = (CookieManager) mClient.getCookieHandler();
                 List<HttpCookie> cookies = (List) cookieManager.getCookieStore().getCookies();
@@ -475,13 +485,11 @@ public class LoginActivity extends AppCompatActivity {
                 for (HttpCookie cookie : cookies) {
                     String name = cookie.getName();
                     if ("fingerprint".equals(name)) {
-
                         String fingerprint = cookie.getValue();
-
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(
                                 mContext);
                         sharedPreferences.edit().putString("fingerprint", fingerprint).apply();
-                        finish();
+                        startMainActivity();
                         return;
                     }
                 }

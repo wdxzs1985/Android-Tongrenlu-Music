@@ -16,8 +16,11 @@
 
 package info.tongrenlu;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -43,6 +46,7 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
+import info.tongrenlu.domain.UserBean;
 import info.tongrenlu.util.OnFragmentInteractionListener;
 
 /**
@@ -54,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public static final int PLAYLIST_LOADER = 1;
     public static final int TRACK_LOADER = 2;
 
+    private boolean mSignin = false;
+    private UserBean mUser = null;
 
     private DrawerLayout mDrawerLayout;
     private ViewPager mViewPager;
@@ -79,17 +85,18 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initUser(this.getApplicationContext());
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         final ActionBar ab = getSupportActionBar();
-        if(ab!=null) {
+        if (ab != null) {
             ab.setHomeAsUpIndicator(R.drawable.ic_menu);
             ab.setDisplayHomeAsUpEnabled(true);
         }
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         if (navigationView != null) {
             setupDrawerContent(navigationView);
@@ -99,13 +106,23 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         // mTabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
 
         mViewPager = (ViewPager) findViewById(R.id.viewpager);
-
         if (mViewPager != null) {
             setupViewPager(mViewPager);
         }
 
+
     }
 
+    private void initUser(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Long id = sharedPreferences.getLong("userId", 0);
+        String defaultNickname = getString(R.string.guest);
+        String nickname = sharedPreferences.getString("nickname", defaultNickname);
+
+        mUser = new UserBean();
+        mUser.setId(id);
+        mUser.setNickname(nickname);
+    }
 
     @Override
     protected void onStart() {
@@ -140,12 +157,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     private void setupDrawerContent(NavigationView navigationView) {
-
         ImageView userAvatar = (ImageView) navigationView.findViewById(R.id.avatar);
-        Glide.with(this).load(R.drawable.cheese_2).into(userAvatar);
+        if (mUser.isGuest()) {
+            Glide.with(this).load(R.drawable.default_cover).into(userAvatar);
+        } else {
+            Glide.with(this).load("http://files.tongrenlu.info/u" +
+                                  mUser.getId() +
+                                  "/cover_400.jpg").into(userAvatar);
+        }
 
         TextView username = (TextView) navigationView.findViewById(R.id.username);
-        username.setText("Guest");
+        username.setText(mUser.getNickname());
+
+        navigationView.getMenu().findItem(R.id.nav_signup).setVisible(mUser.isGuest());
+        navigationView.getMenu().findItem(R.id.nav_signin).setVisible(mUser.isGuest());
+        navigationView.getMenu().findItem(R.id.nav_signout).setVisible(!mUser.isGuest());
 
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
@@ -155,11 +181,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         mDrawerLayout.closeDrawers();
 
                         switch (menuItem.getItemId()) {
-                            case R.id.nav_home:
+                            case R.id.nav_signin:
                                 //mViewPager.setCurrentItem(0,true);
                                 //setupViewPager(mViewPager);
                                 break;
-                            case R.id.nav_messages:
+                            case R.id.nav_signout:
                                 //mViewPager.setCurrentItem(1,true);
                                 //setupViewPager2(mViewPager);
                                 break;
@@ -168,6 +194,18 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                         return true;
                     }
                 });
+
+        // navigationView.findViewById(R.id.nav_signup).setVisibility(View.GONE);
+        // navigationView.findViewById(R.id.nav_signout).setVisibility(View.GONE);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(final Menu menu) {
+        // menu.findItem(R.id.nav_signup).setVisible(false);
+        // menu.findItem(R.id.nav_signout).setVisible(false);
+
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     static class Adapter extends FragmentPagerAdapter {
