@@ -52,4 +52,13 @@
     <dimen name="player_timetext_size">16sp</dimen>
 
     <dimen name="player_button_height">44dp</dimen>
+
+    <dimen name="standard_margin">16dp</dimen>
+    <dimen name="small_margin">8dp</dimen>
+    <dimen name="tiny_margin">4dp</dimen>
+    <dimen name="image_size">120dp</dimen>
+    <item name="keyline1" type="dimen">@dimen/standard_margin</item>
+    <dimen name="keyline2">72dp</dimen>
+    <item name="keyline3" type="dimen">@dimen/standard_margin</item>
+    <integer name="list_columns">1</integer>
 </resources>

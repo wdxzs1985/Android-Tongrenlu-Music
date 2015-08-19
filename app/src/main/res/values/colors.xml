@@ -21,4 +21,6 @@
     <color name="fullscreen_line_color">#E5FFFFFF</color>
 
     <color name="window_background">#FFF5F5F5</color>
+
+    <color name="text_background">#90000000</color>
 </resources>

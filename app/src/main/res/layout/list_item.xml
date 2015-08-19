@@ -15,25 +15,60 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-              android:gravity="center_vertical"
-              android:paddingBottom="8dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-              android:paddingTop="8dp">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="@dimen/image_size"
+             android:foreground="?attr/selectableItemBackground">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/avatar"
-        android:layout_width="@dimen/list_item_avatar_size"
-        android:layout_height="@dimen/list_item_avatar_size"
-        android:layout_marginRight="16dp"/>
-
-    <TextView
-        android:id="@android:id/text1"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceListItem"/>
+        android:layout_height="match_parent">
 
-</LinearLayout>
+        <ImageView
+            android:id="@android:id/icon"
+            android:layout_width="@dimen/album_cover_size"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/cover"
+            android:transitionName="share_cover" />
+
+        <TextView
+            android:id="@+id/overlaytext"
+            style="?android:textAppearanceSmallInverse"
+            android:layout_width="@dimen/album_cover_size"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@android:id/icon"
+            android:background="@color/text_background"
+            android:gravity="center"
+            android:padding="@dimen/tiny_margin"
+            tools:text="Overlay" />
+
+        <TextView
+            android:id="@android:id/text1"
+            style="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@android:id/icon"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="@dimen/small_margin"
+            android:paddingRight="@dimen/small_margin"
+            android:paddingTop="@dimen/small_margin"
+            tools:text="Title 1" />
+
+        <TextView
+            android:id="@android:id/text2"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@android:id/text1"
+            android:layout_toRightOf="@android:id/icon"
+            android:ellipsize="end"
+            android:maxLines="4"
+            android:padding="@dimen/small_margin"
+            tools:text="Description goes here" />
+
+    </RelativeLayout>
+
+</FrameLayout>

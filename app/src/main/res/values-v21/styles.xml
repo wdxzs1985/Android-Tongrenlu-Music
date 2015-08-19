@@ -10,6 +10,9 @@
         <item name="android:windowSharedElementEnterTransition">@transition/image_transform</item>
         <item name="android:windowSharedElementExitTransition">@transition/image_transform</item>
 
+        <item name="android:windowEnterTransition">@transition/window_enter</item>
+        <item name="android:windowReturnTransition">@transition/window_return</item>
+
     </style>
 
     <style name="Theme.DesignDemo" parent="Base.Theme.DesignDemo">

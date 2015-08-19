@@ -71,13 +71,20 @@ public class MusicDetailActivity extends AppCompatActivity implements OnFragment
         final long articleId = intent.getLongExtra("id", 0);
         final String title = intent.getStringExtra("title");
 
+        if (articleId == 0) {
+            this.finish();
+            return;
+        }
+
         CollapsingToolbarLayout collapsingToolbar =
                 (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(title);
 
         final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         String imageUrl = "http://files.tongrenlu.info/m" + articleId + "/cover_400.jpg";
         mCoverView = (ImageView) findViewById(R.id.backdrop);
@@ -86,11 +93,12 @@ public class MusicDetailActivity extends AppCompatActivity implements OnFragment
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         if (viewPager != null) {
             setupViewPager(viewPager);
+
+            TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+            tabLayout.setupWithViewPager(viewPager);
         }
 
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
 
     }
 
@@ -98,8 +106,6 @@ public class MusicDetailActivity extends AppCompatActivity implements OnFragment
         Adapter adapter = new Adapter(getSupportFragmentManager());
 
         adapter.addFragment(getTrackListFragment(), "TrackList");
-        adapter.addFragment(new CheeseListFragment(), "Category 2");
-        adapter.addFragment(new CheeseListFragment(), "Category 3");
         viewPager.setAdapter(adapter);
     }
 
@@ -125,7 +131,9 @@ public class MusicDetailActivity extends AppCompatActivity implements OnFragment
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                finish();
+                //finish();
+
+                ActivityCompat.finishAfterTransition(this);
                 return true;
             case R.id.action_settings:
 
