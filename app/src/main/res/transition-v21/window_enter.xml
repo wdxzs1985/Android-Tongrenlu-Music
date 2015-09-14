@@ -3,9 +3,6 @@
                android:transitionOrdering="sequential">
 
     <explode>
-        <targets>
-            <target android:targetClass="android.widget.LinearLayout" />
-        </targets>
     </explode>
 
 </transitionSet>

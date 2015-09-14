@@ -96,24 +96,21 @@ public class MusicListFragment extends Fragment implements
                              ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_recycler_view, container, false);
+        View view = inflater.inflate(R.layout.fragment_recycler_view, null, false);
         SimpleRecyclerView recyclerView = (SimpleRecyclerView) view.findViewById(android.R.id.list);
         recyclerView.setEmptyView(view.findViewById(android.R.id.empty));
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
         mAdapter = new SimpleStringRecyclerViewAdapter(getActivity(), this,
                                                        new ArrayList<MusicBean>());
         recyclerView.setAdapter(mAdapter);
-        return recyclerView;
+        return view;
     }
 
     @Override
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         final FragmentActivity activity = this.getActivity();
-
-
         activity.getSupportLoaderManager()
                 .initLoader(MainActivity.ALBUM_LOADER, Bundle.EMPTY, this);
     }
@@ -195,14 +192,11 @@ public class MusicListFragment extends Fragment implements
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             MusicBean item =  mValues.get(position);
-
             holder.mTitleTextView.setText(item.getTitle());
-
 
             Uri imageUri = Uri.parse("http://files.tongrenlu.info/m" +
                                      item.getId() +
                                      "/cover_400.jpg");
-
             Glide.with(holder.mImageView.getContext())
                  .load(imageUri)
                  .fitCenter()

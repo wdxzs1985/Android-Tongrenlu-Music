@@ -1,16 +1,9 @@
 package info.tongrenlu;
 
-import info.tongrenlu.adapter.TrackListAdapter;
-import info.tongrenlu.domain.TrackBean;
-import info.tongrenlu.provider.TongrenluContentProvider;
-
-import java.util.ArrayList;
-
-import android.app.Activity;
+import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -25,6 +18,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+
+import info.tongrenlu.adapter.TrackListAdapter;
+import info.tongrenlu.domain.TrackBean;
+import info.tongrenlu.provider.TongrenluContentProvider;
+
 
 public class TrackFragment extends Fragment implements  LoaderCallbacks<Cursor> {
 
@@ -37,7 +36,7 @@ public class TrackFragment extends Fragment implements  LoaderCallbacks<Cursor> 
     private TrackFragmentListener mListener = null;
 
     @Override
-    public void onAttach(final Activity activity) {
+    public void onAttach(final Context activity) {
         super.onAttach(activity);
         if (activity instanceof TrackFragmentListener) {
             this.mListener = (TrackFragmentListener) activity;
@@ -45,37 +44,10 @@ public class TrackFragment extends Fragment implements  LoaderCallbacks<Cursor> 
     }
 
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        this.setHasOptionsMenu(true);
-
-        final FragmentActivity activity = this.getActivity();
-//        final String title = activity.getString(R.string.label_track);
-//        this.setTitle(title);
-
-        this.contentObserver = new ContentObserver(new Handler()) {
-            @Override
-            public void onChange(final boolean selfChange) {
-                super.onChange(selfChange);
-                activity.getSupportLoaderManager()
-                        .getLoader(MainActivity.TRACK_LOADER)
-                        .onContentChanged();
-            }
-        };
-        activity.getContentResolver()
-                .registerContentObserver(TongrenluContentProvider.TRACK_URI,
-                                         true,
-                                         this.contentObserver);
-
-    }
-
-    @Override
     public View onCreateView(final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_simple_list_view,
-                                           container,
+        final View view = inflater.inflate(R.layout.fragment_simple_list_view, null,
                                            false);
         this.mAdapter = new TrackListAdapter(this.getActivity());
         this.mEmpty = view.findViewById(android.R.id.empty);
@@ -101,19 +73,9 @@ public class TrackFragment extends Fragment implements  LoaderCallbacks<Cursor> 
         final CursorLoader loader = new CursorLoader(activity);
         loader.setUri(TongrenluContentProvider.TRACK_URI);
         loader.setSelection("downloadFlg = ?");
-        loader.setSelectionArgs(new String[] { "1" });
+        loader.setSelectionArgs(new String[]{ "1" });
         loader.setSortOrder("articleId desc, trackNumber asc");
         return loader;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        final FragmentActivity activity = this.getActivity();
-        activity.getContentResolver()
-                .unregisterContentObserver(this.contentObserver);
-        activity.getSupportLoaderManager()
-                .destroyLoader(MainActivity.TRACK_LOADER);
     }
 
     @Override

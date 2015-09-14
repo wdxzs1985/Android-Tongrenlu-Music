@@ -125,7 +125,5 @@ public class PlaylistFragment extends Fragment implements OnItemClickListener {
         public void onLoaderReset(Loader<Cursor> loader) {
             PlaylistFragment.this.mAdapter.swapCursor(null);
         }
-
     }
-
 }

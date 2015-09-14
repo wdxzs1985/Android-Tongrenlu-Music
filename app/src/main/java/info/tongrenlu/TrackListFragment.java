@@ -1,6 +1,6 @@
 package info.tongrenlu;
 
-import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -48,8 +48,9 @@ public class TrackListFragment extends Fragment implements LoaderManager.LoaderC
     public View onCreateView(final LayoutInflater inflater,
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
-        RecyclerView recyclerView = (RecyclerView) inflater.inflate(
-                R.layout.fragment_cheese_list, container, false);
+        RecyclerView recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_cheese_list,
+                                                                    null,
+                                                                    false);
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
 
         mAdapter = new SimpleRecyclerViewAdapter(this,
@@ -101,7 +102,7 @@ public class TrackListFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(Context activity) {
         super.onAttach(activity);
         try {
             mListener = (OnFragmentInteractionListener) activity;
@@ -121,26 +122,17 @@ public class TrackListFragment extends Fragment implements LoaderManager.LoaderC
             extends RecyclerView.Adapter<SimpleRecyclerViewAdapter.ViewHolder> {
 
         private final TypedValue mTypedValue = new TypedValue();
+        private final TrackListFragment mFragment;
         private int mBackground;
         private ArrayList<TrackBean> mValues;
-        private final TrackListFragment mFragment;
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
-            public TrackBean mBoundItem;
-
-            public final View mView;
-            public final TextView mTextView;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mTextView = (TextView) view.findViewById(android.R.id.text1);
-            }
-
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mTextView.getText();
-            }
+        public SimpleRecyclerViewAdapter(TrackListFragment fragment, ArrayList<TrackBean> items) {
+            mFragment = fragment;
+            fragment.getActivity()
+                    .getTheme()
+                    .resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
+            mBackground = mTypedValue.resourceId;
+            mValues = items;
         }
 
         public TrackBean getValueAt(int position) {
@@ -148,13 +140,6 @@ public class TrackListFragment extends Fragment implements LoaderManager.LoaderC
         }
 
         public void setValues(ArrayList<TrackBean> items) {
-            mValues = items;
-        }
-
-        public SimpleRecyclerViewAdapter(TrackListFragment fragment, ArrayList<TrackBean> items) {
-            mFragment = fragment;
-            fragment.getActivity().getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
-            mBackground = mTypedValue.resourceId;
             mValues = items;
         }
 
@@ -193,6 +178,23 @@ public class TrackListFragment extends Fragment implements LoaderManager.LoaderC
         @Override
         public int getItemCount() {
             return mValues.size();
+        }
+
+        public static class ViewHolder extends RecyclerView.ViewHolder {
+            public final View mView;
+            public final TextView mTextView;
+            public TrackBean mBoundItem;
+
+            public ViewHolder(View view) {
+                super(view);
+                mView = view;
+                mTextView = (TextView) view.findViewById(android.R.id.text1);
+            }
+
+            @Override
+            public String toString() {
+                return super.toString() + " '" + mTextView.getText();
+            }
         }
     }
 }
